@@ -44,7 +44,9 @@ class OpenAIAPI:
                         "content": "You are a video game historian and journalist who writes professional wiki "
                                   "entries about video games. Your entries are well-structured, factual, "
                                   "comprehensive and engaging for readers. Focus on the game's development, "
-                                  "gameplay, reception, and cultural impact. Use a neutral, encyclopedic tone."
+                                  "gameplay, reception, and cultural impact. Use a neutral, encyclopedic tone. "
+                                  "Feel free to integrate relevant visual elements such as 'As shown in the game's artwork, ...' "
+                                  "or 'The visual style of the game depicts...' when the game has images available."
                     },
                     {
                         "role": "user",
@@ -90,6 +92,7 @@ class OpenAIAPI:
         tags = ', '.join(game_data.get('tags', []))
         rating = game_data.get('rating', 'No rating available')
         website = game_data.get('website', 'No official website available')
+        image_url = game_data.get('image_url', 'No image available')
         
         prompt = f"""
 Please create a professional wiki entry for the video game "{game_name}".
@@ -104,6 +107,7 @@ Here is the information available about the game:
 - Tags: {tags}
 - Rating: {rating}
 - Official Website: {website}
+- Image URL: {image_url}
 
 Write a comprehensive wiki entry that is 3-5 paragraphs long. Cover the game's development, gameplay mechanics, story/setting (if applicable), reception, and cultural impact.
 
@@ -114,5 +118,6 @@ Format your response as a JSON object with two fields:
 2. "references": A formatted list of references in APA style
 
 Note: If the description is in HTML format, please parse it and use the actual content rather than the HTML tags.
+The image URL will be displayed alongside your wiki entry, so you don't need to describe the image in detail. Focus on the game itself.
 """
         return prompt

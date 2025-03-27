@@ -29,6 +29,7 @@ class ExcelManager:
                 'Studio',
                 'Release Date',
                 'Review Count',
+                'Image URL',
                 'Wiki Entry',
                 'References',
                 'Additional Info',

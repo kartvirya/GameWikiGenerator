@@ -83,6 +83,7 @@ class GameWikiGenerator:
                 'Studio': ', '.join([dev.get('name', '') for dev in game_details.get('developers', [])]),
                 'Release Date': game_details.get('released', ''),
                 'Review Count': len(game_details.get('ratings', [])),
+                'Image URL': game_details.get('background_image', ''),
                 'Wiki Entry': wiki_entry,
                 'References': references,
                 'Additional Info': self.get_additional_info(game_details)
@@ -122,7 +123,8 @@ class GameWikiGenerator:
             'tags': [t.get('name', '') for t in game_details.get('tags', [])],
             'ratings': game_details.get('ratings', []),
             'rating': game_details.get('rating', 0),
-            'website': game_details.get('website', '')
+            'website': game_details.get('website', ''),
+            'image_url': game_details.get('background_image', '')
         }
 
     def get_additional_info(self, game_details):

@@ -29,9 +29,9 @@
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card h-100">
                                     {% if game.background_image %}
-                                        <img src="{{ game.background_image }}" class="card-img-top" alt="{{ game.name }}">
+                                        <img src="{{ game.background_image }}" class="card-img-top" alt="{{ game.name }}" style="height: 200px; object-fit: cover;">
                                     {% else %}
-                                        <div class="card-img-top bg-secondary" style="height: 150px; display: flex; align-items: center; justify-content: center;">
+                                        <div class="card-img-top bg-secondary" style="height: 200px; display: flex; align-items: center; justify-content: center;">
                                             <span class="text-white">No Image</span>
                                         </div>
                                     {% endif %}

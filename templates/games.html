@@ -22,9 +22,10 @@
             <div class="card-body">
                 {% if games %}
                     <div class="table-responsive">
-                        <table class="table">
+                        <table class="table align-middle">
                             <thead>
                                 <tr>
+                                    <th style="width: 80px">Image</th>
                                     <th>Name</th>
                                     <th>Studio</th>
                                     <th>Release Date</th>
@@ -35,6 +36,13 @@
                             <tbody>
                                 {% for game in games %}
                                 <tr>
+                                    <td>
+                                        {% if game['Image URL'] %}
+                                        <img src="{{ game['Image URL'] }}" alt="{{ game.Name }}" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
+                                        {% else %}
+                                        <div class="bg-secondary rounded" style="width: 60px; height: 60px;"></div>
+                                        {% endif %}
+                                    </td>
                                     <td>{{ game.Name }}</td>
                                     <td>{{ game.Studio }}</td>
                                     <td>{{ game['Release Date'] }}</td>

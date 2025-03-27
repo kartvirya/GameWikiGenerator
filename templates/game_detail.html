@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="row mb-4">
-    <div class="col-12">
+    <div class="col-md-8">
         <a href="{{ url_for('games') }}" class="btn btn-outline-secondary mb-3">
             <i class="bi bi-arrow-left"></i> Back to Games
         </a>
@@ -15,6 +15,13 @@
             <span class="badge bg-success">{{ game['Review Count'] }} Reviews</span>
             {% endif %}
         </div>
+    </div>
+    <div class="col-md-4 text-center">
+        {% if game['Image URL'] %}
+        <div class="game-image-container mb-3">
+            <img src="{{ game['Image URL'] }}" alt="{{ game.Name }}" class="img-fluid rounded shadow" style="max-height: 300px; object-fit: cover;">
+        </div>
+        {% endif %}
     </div>
 </div>
 
