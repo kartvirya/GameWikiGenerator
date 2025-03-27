@@ -68,6 +68,35 @@
     transform: scale(1.1);
 }
 
+/* References styling */
+.references-list {
+    padding-left: 1.5rem;
+}
+
+.references-list li {
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--bs-secondary-color);
+    text-align: justify;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+.references-list li:hover {
+    color: var(--bs-light);
+}
+
+.references-list a {
+    text-decoration: none;
+    color: var(--bs-info);
+}
+
+.references-list a:hover {
+    text-decoration: underline;
+}
+
 /* Footer positioning */
 html, body {
     height: 100%;

@@ -111,11 +111,11 @@ Here is the information available about the game:
 
 Write a comprehensive wiki entry that is 3-5 paragraphs long. Cover the game's development, gameplay mechanics, story/setting (if applicable), reception, and cultural impact.
 
-Also include a list of references that would be appropriate for this wiki entry. These can include gaming websites, reviews, interviews, and other reliable sources.
+Also include a list of references that would be appropriate for this wiki entry. These can include gaming websites, reviews, interviews, and other reliable sources. Each reference should be properly formatted in APA style.
 
 Format your response as a JSON object with two fields:
-1. "wiki_entry": The full 3-5 paragraph wiki entry text
-2. "references": A formatted list of references in APA style
+1. "wiki_entry": The full 3-5 paragraph wiki entry text with HTML formatting
+2. "references": A formatted list of references in APA style. Please separate each reference clearly - either with line breaks between them or as an array of strings, with each item being one complete reference.
 
 Note: If the description is in HTML format, please parse it and use the actual content rather than the HTML tags.
 The image URL will be displayed alongside your wiki entry, so you don't need to describe the image in detail. Focus on the game itself.
