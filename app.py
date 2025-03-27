@@ -225,8 +225,8 @@ def run_job():
                 from main import GameWikiGenerator
                 generator = GameWikiGenerator()
                 
-                # Run the job (process only 2 games for demo/test purposes)
-                generator.run_daily_job(limit=2)
+                # Run the job with the full daily limit from config (800 games)
+                generator.run_daily_job()
                 
                 logger.info("Background job completed successfully")
             except Exception as e:

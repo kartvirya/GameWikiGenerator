@@ -74,15 +74,29 @@ class GameWikiGenerator:
             
             # Generate wiki entry
             logger.info(f"Generating wiki entry for: {game['name']}")
+            logger.info(f"Generating wiki entry for {game['name']}")
             wiki_entry, references = self.openai_api.generate_wiki_entry(wiki_input)
+            
+            # Handle potential None values from the API response
+            if wiki_entry is None:
+                wiki_entry = f"No wiki entry could be generated for {game['name']}."
+                logger.warning(f"Generated empty wiki entry for {game['name']}")
+            
+            if references is None:
+                references = "No references available."
+                logger.warning(f"Generated empty references for {game['name']}")
+            
+            # Ensure game_details keys exist before accessing
+            developers = game_details.get('developers', [])
+            dev_names = [dev.get('name', '') for dev in developers if dev and isinstance(dev, dict)]
             
             # Prepare data for Excel
             excel_data = {
                 'Game ID': game_id,
                 'Name': game_details.get('name', ''),
-                'Studio': ', '.join([dev.get('name', '') for dev in game_details.get('developers', [])]),
+                'Studio': ', '.join(dev_names),
                 'Release Date': game_details.get('released', ''),
-                'Review Count': len(game_details.get('ratings', [])),
+                'Review Count': len(game_details.get('ratings', [])) if game_details.get('ratings') else 0,
                 'Image URL': game_details.get('background_image', ''),
                 'Wiki Entry': wiki_entry,
                 'References': references,
