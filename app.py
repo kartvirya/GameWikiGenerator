@@ -1,4 +1,5 @@
 import os
+import threading
 import pandas as pd
 from flask import Flask, render_template, request, redirect, url_for, flash
 
@@ -123,9 +124,19 @@ def search():
             
     return render_template('search.html')
 
+# Global variable to track games being processed
+processing_games = {}
+
 @app.route('/process/<int:game_id>')
 def process_game(game_id):
     """Process a single game by ID."""
+    global processing_games
+    
+    # Check if already processing
+    if game_id in processing_games:
+        flash(f"Game is already being processed. Please wait.", "info")
+        return redirect(url_for('search'))
+    
     try:
         # Get the game details from RAWG
         game_details = rawg_api.get_game_details(game_id)
@@ -140,42 +151,86 @@ def process_game(game_id):
             'name': game_details.get('name', 'Unknown Game')
         }
         
-        # Initialize GameWikiGenerator components from main.py
-        from main import GameWikiGenerator
-        generator = GameWikiGenerator()
+        # Process in background thread
+        def process_game_thread(game):
+            global processing_games
+            try:
+                # Initialize GameWikiGenerator components from main.py
+                from main import GameWikiGenerator
+                generator = GameWikiGenerator()
+                
+                # Process the game
+                success = generator.process_game(game)
+                logger.info(f"Background processing for {game['name']} completed with status: {success}")
+            except Exception as e:
+                logger.error(f"Error in background processing for {game['name']}: {e}")
+            finally:
+                # Remove from processing list when done
+                if game['id'] in processing_games:
+                    del processing_games[game['id']]
         
-        # Process the game
-        success = generator.process_game(game)
+        # Mark as processing
+        processing_games[game_id] = game['name']
         
-        if success:
-            flash(f"Successfully processed game: {game['name']}", "success")
-            return redirect(url_for('game_detail', game_id=game_id))
-        else:
-            flash(f"Error processing game: {game['name']}", "error")
-            return redirect(url_for('search'))
+        # Start thread
+        thread = threading.Thread(target=process_game_thread, args=(game,))
+        thread.daemon = True
+        thread.start()
+        
+        flash(f"Started processing game: {game['name']}. You can check the game library once processing is complete.", "success")
+        return redirect(url_for('games'))
             
     except Exception as e:
-        logger.error(f"Error processing game {game_id}: {e}")
+        logger.error(f"Error starting game processing {game_id}: {e}")
+        # Remove from processing if there was an error
+        if game_id in processing_games:
+            del processing_games[game_id]
         flash("Error processing game", "error")
         return redirect(url_for('search'))
+
+# Global variable to track if job is running
+job_running = False
 
 @app.route('/run-job')
 def run_job():
     """Run the daily job manually."""
+    global job_running
+    
+    if job_running:
+        flash("A job is already running in the background", "info")
+        return redirect(url_for('games'))
+    
     try:
-        # Initialize GameWikiGenerator components from main.py
-        from main import GameWikiGenerator
-        generator = GameWikiGenerator()
+        # Start the job in a background thread
+        def run_background_job():
+            global job_running
+            try:
+                # Initialize GameWikiGenerator components from main.py
+                from main import GameWikiGenerator
+                generator = GameWikiGenerator()
+                
+                # Run the job (process only 2 games for demo/test purposes)
+                generator.run_daily_job(limit=2)
+                
+                logger.info("Background job completed successfully")
+            except Exception as e:
+                logger.error(f"Error in background job: {e}")
+            finally:
+                job_running = False
         
-        # Run the job
-        generator.run_daily_job()
+        # Start the thread
+        job_running = True
+        thread = threading.Thread(target=run_background_job)
+        thread.daemon = True
+        thread.start()
         
-        flash("Job completed successfully!", "success")
+        flash("Job started in the background. Check the game library for results.", "success")
         return redirect(url_for('games'))
         
     except Exception as e:
-        logger.error(f"Error running job: {e}")
-        flash("Error running job", "error")
+        logger.error(f"Error starting job: {e}")
+        job_running = False
+        flash("Error starting job", "error")
         return redirect(url_for('index'))
 
 @app.template_filter('truncate_html')

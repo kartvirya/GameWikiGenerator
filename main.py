@@ -100,8 +100,8 @@ class GameWikiGenerator:
             
             logger.info(f"Successfully processed game: {game['name']}")
             
-            # Add a small delay to prevent API rate limiting
-            time.sleep(2)
+            # No delay in the web request context to avoid worker timeout
+            # Delays should be handled at the scheduling level
             
             return True
         
@@ -147,22 +147,30 @@ class GameWikiGenerator:
             
         return "\n".join(additional_info)
 
-    def run_daily_job(self):
-        """Main job to run daily processing of games."""
-        logger.info("Starting daily job for processing games")
+    def run_daily_job(self, limit=None):
+        """Main job to run daily processing of games.
+        
+        Args:
+            limit: Optional maximum number of games to process in this run
+        """
+        logger.info(f"Starting daily job for processing games{' (limited mode)' if limit else ''}")
         
         # Reset counter if it's a new day
         current_date = datetime.now().date()
         if current_date != self.reset_date:
             self.reset_daily_counter()
         
+        # If limit is provided, use that instead of daily limit
+        effective_limit = limit if limit is not None else self.request_limit
+        
         # Check if we've hit the daily limit
-        if self.daily_request_count >= self.request_limit:
-            logger.info(f"Daily request limit reached ({self.request_limit}). Stopping until tomorrow.")
+        if self.daily_request_count >= effective_limit:
+            logger.info(f"Request limit reached ({effective_limit}). Stopping.")
             return
         
         page = 1
-        while self.daily_request_count < self.request_limit:
+        processed_count = 0
+        while self.daily_request_count < self.request_limit and processed_count < effective_limit:
             try:
                 # Get indie games (can be customized based on need)
                 games = self.rawg_api.get_indie_games(page)
@@ -174,13 +182,17 @@ class GameWikiGenerator:
                 # Process each game
                 success_count = 0
                 for game in games:
-                    if self.daily_request_count >= self.request_limit:
-                        logger.info(f"Daily request limit reached ({self.request_limit}). Stopping.")
+                    if self.daily_request_count >= self.request_limit or processed_count >= effective_limit:
+                        logger.info(f"Request limit reached ({effective_limit}). Stopping.")
                         return
                     
                     success = self.process_game(game)
                     if success:
                         success_count += 1
+                        processed_count += 1
+                        # Add a delay between processing games to avoid API rate limits
+                        # This is safe in the background thread
+                        time.sleep(2)
                 
                 if success_count == 0:
                     # If we processed a page with no new games, move to the next page
@@ -192,9 +204,10 @@ class GameWikiGenerator:
                     
             except Exception as e:
                 logger.error(f"Error in run_daily_job: {e}")
-                time.sleep(60)  # Wait before retrying
+                # Reduce sleep time to avoid worker timeout
+                time.sleep(5)  # Wait before retrying
         
-        logger.info(f"Daily job completed. Processed {self.daily_request_count} games.")
+        logger.info(f"Daily job completed. Processed {processed_count} games.")
 
 def start_scheduler():
     """Start the scheduler for periodic processing."""
