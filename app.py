@@ -27,13 +27,31 @@ ITEMS_PER_PAGE = 10
 
 def index():
     """Home page route."""
-    # Get total game count
-    game_count = excel_manager.get_game_count()
+    # Always get the latest game count directly from Excel
+    try:
+        df = pd.read_excel(config.EXCEL_FILE_PATH, engine='openpyxl')
+        game_count = len(df)
+        
+        # Get some stats for display
+        most_recent_games = df.sort_index(ascending=False).head(5).to_dict('records')
+        
+        # Check if a background job is running
+        job_status = "Running" if job_running else "Not running"
+        
+        logger.info(f"Home page loaded. Total games: {game_count}, Job status: {job_status}")
+        
+    except Exception as e:
+        logger.error(f"Error loading game count: {e}")
+        game_count = 0
+        most_recent_games = []
+        job_status = "Unknown"
     
     # Pass data to template
     return render_template(
         'index.html',
-        game_count=game_count
+        game_count=game_count,
+        most_recent_games=most_recent_games,
+        job_status=job_status
     )
 
 @app.route('/games')
@@ -41,8 +59,13 @@ def index():
 def games(page=1):
     """Display all processed games with pagination."""
     try:
-        # Load games from Excel
-        df = pd.read_excel(config.EXCEL_FILE_PATH)
+        # Always reload games from Excel to get the latest data
+        # This ensures newly processed games appear immediately
+        df = pd.read_excel(config.EXCEL_FILE_PATH, engine='openpyxl')
+        
+        # Sort by most recently added (assuming the file is in chronological order)
+        # This shows newest games first
+        df = df.sort_index(ascending=False)
         
         # Handle NaN values in Image URL column
         df['Image URL'] = df['Image URL'].apply(lambda x: '' if pd.isna(x) else x)
@@ -59,23 +82,26 @@ def games(page=1):
         end_idx = start_idx + ITEMS_PER_PAGE
         games_page = df.iloc[start_idx:end_idx].to_dict('records')
         
+        logger.info(f"Displaying {len(games_page)} games (page {page}/{total_pages}), total: {total_games} games")
+        
         return render_template(
             'games.html',
             games=games_page,
             page=page,
-            total_pages=total_pages
+            total_pages=total_pages,
+            total_games=total_games
         )
         
     except Exception as e:
         logger.error(f"Error loading games: {e}")
-        return render_template('games.html', games=[], page=1, total_pages=1)
+        return render_template('games.html', games=[], page=1, total_pages=1, total_games=0)
 
 @app.route('/game/<int:game_id>')
 def game_detail(game_id):
     """Display detailed information for a single game."""
     try:
-        # Load game from Excel
-        df = pd.read_excel(config.EXCEL_FILE_PATH)
+        # Always reload game from Excel to get the latest data
+        df = pd.read_excel(config.EXCEL_FILE_PATH, engine='openpyxl')
         
         # Find the game by ID
         game = df[df['Game ID'] == game_id]
@@ -100,6 +126,7 @@ def game_detail(game_id):
             except Exception as img_error:
                 logger.error(f"Error fetching image for game {game_id}: {img_error}")
         
+        logger.info(f"Displaying details for game: {game_data.get('Name', 'Unknown')}")
         return render_template('game_detail.html', game=game_data)
         
     except Exception as e:
@@ -118,14 +145,21 @@ def search():
             return render_template('search.html')
             
         try:
-            # Get processed game IDs to filter out already processed games
-            processed_ids = excel_manager.get_processed_game_ids()
+            # Always get fresh processed game IDs directly from Excel to filter out already processed games
+            try:
+                df = pd.read_excel(config.EXCEL_FILE_PATH, engine='openpyxl')
+                processed_ids = df['Game ID'].tolist() if 'Game ID' in df.columns else []
+            except Exception as excel_error:
+                logger.error(f"Error reading Excel file: {excel_error}")
+                processed_ids = []
             
             # Search for games
             search_results = rawg_api.search_games(query)
             
             # Filter out already processed games
             filtered_results = [game for game in search_results if game['id'] not in processed_ids]
+            
+            logger.info(f"Search for '{query}' returned {len(search_results)} results, {len(filtered_results)} unprocessed")
             
             return render_template(
                 'search_results.html',
