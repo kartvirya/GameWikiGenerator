@@ -1,0 +1,78 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <a href="{{ url_for('search') }}" class="btn btn-outline-secondary mb-3">
+            <i class="bi bi-arrow-left"></i> Back to Search
+        </a>
+        <h1 class="mb-4">Search Results for "{{ query }}"</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">
+                    {% if search_results %}
+                        Found {{ search_results|length }} games that haven't been processed yet
+                    {% else %}
+                        No new games found for "{{ query }}"
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if search_results %}
+                    <div class="row">
+                        {% for game in search_results %}
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100">
+                                    {% if game.background_image %}
+                                        <img src="{{ game.background_image }}" class="card-img-top" alt="{{ game.name }}">
+                                    {% else %}
+                                        <div class="card-img-top bg-secondary" style="height: 150px; display: flex; align-items: center; justify-content: center;">
+                                            <span class="text-white">No Image</span>
+                                        </div>
+                                    {% endif %}
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ game.name }}</h5>
+                                        <p class="card-text">
+                                            <small class="text-muted">
+                                                Released: 
+                                                {% if game.released %}
+                                                    {{ game.released }}
+                                                {% else %}
+                                                    Unknown
+                                                {% endif %}
+                                            </small>
+                                        </p>
+                                        <p class="card-text">
+                                            <small class="text-muted">Game ID: {{ game.id }}</small>
+                                        </p>
+                                    </div>
+                                    <div class="card-footer bg-transparent">
+                                        <a href="{{ url_for('process_game', game_id=game.id) }}" 
+                                           class="btn btn-primary">Process Game</a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <p>No new games found for "{{ query }}".</p>
+                        <p>Possible reasons:</p>
+                        <ul>
+                            <li>The game name may be misspelled</li>
+                            <li>All matching games have already been processed</li>
+                            <li>The game may not be in the RAWG.io database</li>
+                        </ul>
+                        <a href="{{ url_for('search') }}" class="btn btn-outline-primary mt-2">Try a different search</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

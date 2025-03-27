@@ -1,0 +1,108 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto text-center">
+        <h1 class="display-4 mb-4">Game Wiki Generator</h1>
+        <p class="lead mb-5">
+            Automatically generate comprehensive wiki entries for video games using
+            data from RAWG.io and OpenAI's powerful language models.
+        </p>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-lg-4 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-collection-play display-4 text-primary mb-3"></i>
+                <h3>Game Database</h3>
+                <p>
+                    Access detailed information from the RAWG.io video game database,
+                    with data on thousands of games across all platforms.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-cpu display-4 text-primary mb-3"></i>
+                <h3>AI-Powered</h3>
+                <p>
+                    Generate well-structured, informative wiki entries using
+                    OpenAI's advanced language models to create professional content.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-file-earmark-text display-4 text-primary mb-3"></i>
+                <h3>Content Management</h3>
+                <p>
+                    Store and manage all generated wiki entries in a structured format,
+                    making it easy to search, browse, and export your game library.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Section -->
+<div class="row my-5">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm bg-dark">
+            <div class="card-body py-5">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-4 mb-md-0">
+                        <h2 class="display-4 fw-bold text-primary">{{ game_count }}</h2>
+                        <p class="lead">Games Processed</p>
+                    </div>
+                    <div class="col-md-4 mb-4 mb-md-0">
+                        <h2 class="display-4 fw-bold text-primary">{{ 3 * game_count }}</h2>
+                        <p class="lead">Paragraphs Generated</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h2 class="display-4 fw-bold text-primary">800</h2>
+                        <p class="lead">Daily Request Limit</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="row mt-5">
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h3>Browse Library</h3>
+                <p>
+                    View all processed games in your wiki library. Browse through
+                    the collection of games that have already been processed and
+                    have wiki entries generated.
+                </p>
+                <a href="{{ url_for('games') }}" class="btn btn-primary">View Library</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h3>Search for Games</h3>
+                <p>
+                    Search for specific games to add to your wiki library. Find games
+                    by name and generate wiki entries for them manually.
+                </p>
+                <a href="{{ url_for('search') }}" class="btn btn-primary">Search Games</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

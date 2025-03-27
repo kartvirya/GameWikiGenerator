@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <a href="{{ url_for('games') }}" class="btn btn-outline-secondary mb-3">
+            <i class="bi bi-arrow-left"></i> Back to Games
+        </a>
+        <h1 class="mb-2">{{ game.Name }}</h1>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <span class="badge bg-primary">{{ game.Studio }}</span>
+            <span class="badge bg-info">Released: {{ game['Release Date'] }}</span>
+            <span class="badge bg-secondary">Game ID: {{ game['Game ID'] }}</span>
+            {% if game['Review Count'] %}
+            <span class="badge bg-success">{{ game['Review Count'] }} Reviews</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Main Game Info -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Wiki Entry</h5>
+            </div>
+            <div class="card-body">
+                <div class="wiki-content">
+                    {{ game['Wiki Entry'] | safe }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- References -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">References</h5>
+            </div>
+            <div class="card-body">
+                {{ game.References | safe }}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game Details Sidebar -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Game Details</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <th>Name:</th>
+                            <td>{{ game.Name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Studio:</th>
+                            <td>{{ game.Studio }}</td>
+                        </tr>
+                        <tr>
+                            <th>Release Date:</th>
+                            <td>{{ game['Release Date'] }}</td>
+                        </tr>
+                        <tr>
+                            <th>Review Count:</th>
+                            <td>{{ game['Review Count'] }}</td>
+                        </tr>
+                        <tr>
+                            <th>Processed on:</th>
+                            <td>{{ game['Date Added'] }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Additional Info -->
+        {% if game['Additional Info'] %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Additional Information</h5>
+            </div>
+            <div class="card-body">
+                {{ game['Additional Info'] | safe }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

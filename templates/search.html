@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Search for Games</h1>
+        <p class="lead">
+            Search for games on RAWG.io to add to your wiki collection.
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('search') }}">
+                    <div class="input-group mb-3">
+                        <input type="text" name="query" class="form-control form-control-lg" 
+                               placeholder="Enter game name..." aria-label="Search" required>
+                        <button class="btn btn-primary" type="submit">Search</button>
+                    </div>
+                    <div class="form-text">
+                        Search for games by name. Results will show games that haven't been processed yet.
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Search Tips</h5>
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li>Be specific with game titles to get more accurate results</li>
+                    <li>If you can't find a game, try using alternative titles or abbreviations</li>
+                    <li>Search results are filtered to show only games that haven't been processed yet</li>
+                    <li>Click the "Process" button next to a game to generate its wiki entry</li>
+                    <li>Processing a game fetches its details from RAWG.io and generates a wiki entry using OpenAI</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,207 @@
+import os
+import pandas as pd
+from flask import Flask, render_template, request, redirect, url_for, flash
+
+from config import Config
+from logger import setup_logger
+from rawg_api import RawgAPI
+from openai_api import OpenAIAPI
+from excel_manager import ExcelManager
+
+# Set up the logger
+logger = setup_logger()
+
+# Initialize the app
+app = Flask(__name__)
+app.secret_key = os.environ.get("SESSION_SECRET", "dev_secret_key")
+
+# Initialize configuration and APIs
+config = Config()
+rawg_api = RawgAPI(config.RAWG_API_KEY)
+openai_api = OpenAIAPI(config.OPENAI_API_KEY)
+excel_manager = ExcelManager(config.EXCEL_FILE_PATH)
+
+# Global variables
+ITEMS_PER_PAGE = 10
+
+def index():
+    """Home page route."""
+    # Get total game count
+    game_count = excel_manager.get_game_count()
+    
+    # Pass data to template
+    return render_template(
+        'index.html',
+        game_count=game_count
+    )
+
+@app.route('/games')
+@app.route('/games/<int:page>')
+def games(page=1):
+    """Display all processed games with pagination."""
+    try:
+        # Load games from Excel
+        df = pd.read_excel(config.EXCEL_FILE_PATH)
+        
+        # Calculate pagination
+        total_games = len(df)
+        total_pages = (total_games + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE
+        
+        # Ensure valid page number
+        page = max(1, min(page, total_pages) if total_pages > 0 else 1)
+        
+        # Get games for current page
+        start_idx = (page - 1) * ITEMS_PER_PAGE
+        end_idx = start_idx + ITEMS_PER_PAGE
+        games_page = df.iloc[start_idx:end_idx].to_dict('records')
+        
+        return render_template(
+            'games.html',
+            games=games_page,
+            page=page,
+            total_pages=total_pages
+        )
+        
+    except Exception as e:
+        logger.error(f"Error loading games: {e}")
+        return render_template('games.html', games=[], page=1, total_pages=1)
+
+@app.route('/game/<int:game_id>')
+def game_detail(game_id):
+    """Display detailed information for a single game."""
+    try:
+        # Load game from Excel
+        df = pd.read_excel(config.EXCEL_FILE_PATH)
+        
+        # Find the game by ID
+        game = df[df['Game ID'] == game_id]
+        
+        if len(game) == 0:
+            flash("Game not found", "error")
+            return redirect(url_for('games'))
+            
+        # Convert to dictionary for template
+        game_data = game.iloc[0].to_dict()
+        
+        return render_template('game_detail.html', game=game_data)
+        
+    except Exception as e:
+        logger.error(f"Error loading game details: {e}")
+        flash("Error loading game details", "error")
+        return redirect(url_for('games'))
+
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    """Search for games on RAWG.io."""
+    if request.method == 'POST':
+        query = request.form.get('query', '')
+        
+        if not query:
+            flash("Please enter a search query", "warning")
+            return render_template('search.html')
+            
+        try:
+            # Get processed game IDs to filter out already processed games
+            processed_ids = excel_manager.get_processed_game_ids()
+            
+            # Search for games
+            search_results = rawg_api.search_games(query)
+            
+            # Filter out already processed games
+            filtered_results = [game for game in search_results if game['id'] not in processed_ids]
+            
+            return render_template(
+                'search_results.html',
+                query=query,
+                search_results=filtered_results
+            )
+            
+        except Exception as e:
+            logger.error(f"Error searching for games: {e}")
+            flash("Error searching for games", "error")
+            return render_template('search.html')
+            
+    return render_template('search.html')
+
+@app.route('/process/<int:game_id>')
+def process_game(game_id):
+    """Process a single game by ID."""
+    try:
+        # Get the game details from RAWG
+        game_details = rawg_api.get_game_details(game_id)
+        
+        if not game_details:
+            flash("Could not fetch game details", "error")
+            return redirect(url_for('search'))
+            
+        # Create a simple game dict for processor
+        game = {
+            'id': game_id,
+            'name': game_details.get('name', 'Unknown Game')
+        }
+        
+        # Initialize GameWikiGenerator components from main.py
+        from main import GameWikiGenerator
+        generator = GameWikiGenerator()
+        
+        # Process the game
+        success = generator.process_game(game)
+        
+        if success:
+            flash(f"Successfully processed game: {game['name']}", "success")
+            return redirect(url_for('game_detail', game_id=game_id))
+        else:
+            flash(f"Error processing game: {game['name']}", "error")
+            return redirect(url_for('search'))
+            
+    except Exception as e:
+        logger.error(f"Error processing game {game_id}: {e}")
+        flash("Error processing game", "error")
+        return redirect(url_for('search'))
+
+@app.route('/run-job')
+def run_job():
+    """Run the daily job manually."""
+    try:
+        # Initialize GameWikiGenerator components from main.py
+        from main import GameWikiGenerator
+        generator = GameWikiGenerator()
+        
+        # Run the job
+        generator.run_daily_job()
+        
+        flash("Job completed successfully!", "success")
+        return redirect(url_for('games'))
+        
+    except Exception as e:
+        logger.error(f"Error running job: {e}")
+        flash("Error running job", "error")
+        return redirect(url_for('index'))
+
+@app.template_filter('truncate_html')
+def truncate_html(text, length=200):
+    """Truncate text to a maximum length, preserving complete words"""
+    if not text:
+        return ""
+        
+    # Strip HTML tags
+    import re
+    text = re.sub(r'<.*?>', '', text)
+    
+    if len(text) <= length:
+        return text
+        
+    # Find the last space before the length limit
+    truncated = text[:length]
+    last_space = truncated.rfind(' ')
+    
+    if last_space != -1:
+        truncated = truncated[:last_space]
+        
+    return truncated + "..."
+
+# Add the home page route
+app.add_url_rule('/', 'index', index)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)

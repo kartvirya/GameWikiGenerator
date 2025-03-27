@@ -1,0 +1,63 @@
+/* Custom CSS for Game Wiki Generator */
+
+/* Wiki content formatting */
+.wiki-content {
+    line-height: 1.6;
+}
+
+.wiki-content h1,
+.wiki-content h2,
+.wiki-content h3,
+.wiki-content h4 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.wiki-content p {
+    margin-bottom: 1rem;
+}
+
+.wiki-content ul,
+.wiki-content ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+/* Card styling */
+.card {
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* Pagination styling */
+.pagination .page-link {
+    color: var(--bs-primary);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+/* Game search results */
+.card-img-top {
+    height: 180px;
+    object-fit: cover;
+}
+
+/* Footer positioning */
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+footer {
+    margin-top: auto;
+}
