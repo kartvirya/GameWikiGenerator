@@ -16,9 +16,8 @@ class OpenAIAPI:
         """
         self.api_key = api_key
         self.client = OpenAI(api_key=api_key)
-        # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
-        # do not change this unless explicitly requested by the user
-        self.model = "gpt-4o"
+        # Using gpt-3.5-turbo model as requested by the user
+        self.model = "gpt-3.5-turbo"
         
     def generate_wiki_entry(self, game_data: Dict[str, Any]) -> Tuple[str, str]:
         """Generate a wiki entry for a game.

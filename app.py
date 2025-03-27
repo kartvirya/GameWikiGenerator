@@ -38,6 +38,9 @@ def index():
         # Check if a background job is running
         job_status = "Running" if job_running else "Not running"
         
+        # Get the model being used for wiki generation
+        openai_model = "GPT-3.5"
+        
         logger.info(f"Home page loaded. Total games: {game_count}, Job status: {job_status}")
         
     except Exception as e:
@@ -45,13 +48,15 @@ def index():
         game_count = 0
         most_recent_games = []
         job_status = "Unknown"
+        openai_model = "GPT-3.5"
     
     # Pass data to template
     return render_template(
         'index.html',
         game_count=game_count,
         most_recent_games=most_recent_games,
-        job_status=job_status
+        job_status=job_status,
+        openai_model=openai_model
     )
 
 @app.route('/games')

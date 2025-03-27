@@ -32,7 +32,7 @@
                 <h3>AI-Powered</h3>
                 <p>
                     Generate well-structured, informative wiki entries using
-                    OpenAI's advanced language models to create professional content.
+                    OpenAI's GPT-3.5 language model to create professional content.
                 </p>
             </div>
         </div>
@@ -67,8 +67,8 @@
                         <p class="lead">Paragraphs Generated</p>
                     </div>
                     <div class="col-md-3 mb-4 mb-md-0">
-                        <h2 class="display-4 fw-bold text-primary">800</h2>
-                        <p class="lead">Daily Request Limit</p>
+                        <h2 class="display-4 fw-bold text-primary">{{ openai_model }}</h2>
+                        <p class="lead">OpenAI Model</p>
                     </div>
                     <div class="col-md-3">
                         <h2 class="display-4 fw-bold {% if job_status == 'Running' %}text-success{% else %}text-secondary{% endif %}">

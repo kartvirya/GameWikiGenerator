@@ -96,7 +96,7 @@ class GameWikiGenerator:
                 'Name': game_details.get('name', ''),
                 'Studio': ', '.join(dev_names),
                 'Release Date': game_details.get('released', ''),
-                'Review Count': len(game_details.get('ratings', [])) if game_details.get('ratings') else 0,
+                'Review Count': game_details.get('ratings_count', 0),
                 'Image URL': game_details.get('background_image', ''),
                 'Wiki Entry': wiki_entry,
                 'References': references,
