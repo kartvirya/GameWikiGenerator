@@ -44,6 +44,9 @@ def games(page=1):
         # Load games from Excel
         df = pd.read_excel(config.EXCEL_FILE_PATH)
         
+        # Handle NaN values in Image URL column
+        df['Image URL'] = df['Image URL'].apply(lambda x: '' if pd.isna(x) else x)
+        
         # Calculate pagination
         total_games = len(df)
         total_pages = (total_games + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE
@@ -81,8 +84,21 @@ def game_detail(game_id):
             flash("Game not found", "error")
             return redirect(url_for('games'))
             
+        # Handle NaN values in Image URL column
+        game['Image URL'] = game['Image URL'].apply(lambda x: '' if pd.isna(x) else x)
+            
         # Convert to dictionary for template
         game_data = game.iloc[0].to_dict()
+        
+        # If image URL is missing, try to fetch it from the RAWG API
+        if not game_data.get('Image URL'):
+            try:
+                logger.info(f"Fetching missing image for game {game_id}")
+                game_details = rawg_api.get_game_details(game_id)
+                if game_details and 'background_image' in game_details:
+                    game_data['Image URL'] = game_details.get('background_image', '')
+            except Exception as img_error:
+                logger.error(f"Error fetching image for game {game_id}: {img_error}")
         
         return render_template('game_detail.html', game=game_data)
         

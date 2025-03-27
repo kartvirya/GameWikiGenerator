@@ -40,7 +40,9 @@
                                         {% if game['Image URL'] %}
                                         <img src="{{ game['Image URL'] }}" alt="{{ game.Name }}" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
                                         {% else %}
-                                        <div class="bg-secondary rounded" style="width: 60px; height: 60px;"></div>
+                                        <div class="bg-secondary rounded" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-controller text-light"></i>
+                                        </div>
                                         {% endif %}
                                     </td>
                                     <td>{{ game.Name }}</td>
