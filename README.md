@@ -40,3 +40,47 @@ A Python-based automation system that fetches game data from RAWG.io, generates 
 
 Run the script:
 
+```
+python main.py
+```
+
+Or start the Flask web interface:
+
+```
+python app.py
+```
+
+## Deployment to Render.com
+
+This application is ready for deployment on Render.com. There are two ways to deploy:
+
+### Option 1: Deploy using the render.yaml blueprint
+
+1. Fork or clone this repository to your GitHub account
+2. Create a new Render account or log into your existing account
+3. On the Render dashboard, click "New+" and select "Blueprint"
+4. Connect your GitHub account and select your forked/cloned repository
+5. Render will detect the render.yaml file and set up the service automatically
+6. Add your API keys in the environment variables section:
+   - `RAWG_API_KEY`: Your RAWG API key
+   - `OPENAI_API_KEY`: Your OpenAI API key
+7. Click "Apply" to start the deployment
+
+### Option 2: Manual setup
+
+1. Create a new Web Service on Render
+2. Link your GitHub repository
+3. Configure the following settings:
+   - **Environment**: Python
+   - **Build Command**: `./render-build.sh`
+   - **Start Command**: `gunicorn --bind 0.0.0.0:$PORT --reuse-port main:app`
+
+4. Add environment variables:
+   - `RAWG_API_KEY`: Your RAWG API key
+   - `OPENAI_API_KEY`: Your OpenAI API key
+   - `SESSION_SECRET`: A random string for Flask's session security
+
+5. Choose a plan and deploy!
+
+The application is already configured to pick up Render.com's `PORT` environment variable.
+

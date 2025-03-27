@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: game-wiki-generator
+    env: python
+    buildCommand: ./render-build.sh
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --reuse-port main:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: RAWG_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+    plan: free
