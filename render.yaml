@@ -3,7 +3,7 @@ services:
     name: game-wiki-generator
     env: python
     buildCommand: ./render-build.sh
-    startCommand: gunicorn --bind 0.0.0.0:$PORT --reuse-port main:app
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --reuse-port --workers=2 main:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.11
@@ -13,4 +13,8 @@ services:
         sync: false
       - key: SESSION_SECRET
         generateValue: true
+    disk:
+      name: game-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
     plan: free
