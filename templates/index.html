@@ -3,10 +3,13 @@
 {% block content %}
 <div class="row">
     <div class="col-lg-8 mx-auto text-center">
-        <h1 class="display-4 mb-4">Game Wiki Generator</h1>
+        <div class="mb-3">
+            <i class="bi bi-joystick text-primary" style="font-size: 3.5rem;"></i>
+        </div>
+        <h1 class="display-4 mb-3">Indie Game Club</h1>
         <p class="lead mb-5">
-            Automatically generate comprehensive wiki entries for video games using
-            data from RAWG.io and OpenAI's powerful language models.
+            Your ultimate resource for discovering and exploring indie games.
+            Featuring comprehensive wiki entries powered by RAWG.io data and OpenAI technology.
         </p>
     </div>
 </div>
@@ -16,10 +19,10 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center">
                 <i class="bi bi-collection-play display-4 text-primary mb-3"></i>
-                <h3>Game Database</h3>
+                <h3>Indie Discovery</h3>
                 <p>
-                    Access detailed information from the RAWG.io video game database,
-                    with data on thousands of games across all platforms.
+                    Explore hidden indie game gems from the RAWG.io database, 
+                    with detailed information on thousands of independent titles.
                 </p>
             </div>
         </div>
@@ -29,10 +32,10 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center">
                 <i class="bi bi-cpu display-4 text-primary mb-3"></i>
-                <h3>AI-Powered</h3>
+                <h3>Smart Wiki Creator</h3>
                 <p>
-                    Generate well-structured, informative wiki entries using
-                    OpenAI's GPT-3.5 language model to create professional content.
+                    Access professionally written wiki entries powered by OpenAI's 
+                    GPT-3.5 technology, delivering deep insights into indie games.
                 </p>
             </div>
         </div>
@@ -42,10 +45,10 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body text-center">
                 <i class="bi bi-file-earmark-text display-4 text-primary mb-3"></i>
-                <h3>Content Management</h3>
+                <h3>Indie Game Library</h3>
                 <p>
-                    Store and manage all generated wiki entries in a structured format,
-                    making it easy to search, browse, and export your game library.
+                    Maintain a curated collection of indie game information, 
+                    making it easy to browse, search, and discover new favorites.
                 </p>
             </div>
         </div>
@@ -60,21 +63,21 @@
                 <div class="row text-center">
                     <div class="col-md-3 mb-4 mb-md-0">
                         <h2 class="display-4 fw-bold text-primary">{{ game_count }}</h2>
-                        <p class="lead">Games Processed</p>
+                        <p class="lead">Indie Games Documented</p>
                     </div>
                     <div class="col-md-3 mb-4 mb-md-0">
                         <h2 class="display-4 fw-bold text-primary">{{ 3 * game_count }}</h2>
-                        <p class="lead">Paragraphs Generated</p>
+                        <p class="lead">Wiki Paragraphs</p>
                     </div>
                     <div class="col-md-3 mb-4 mb-md-0">
                         <h2 class="display-4 fw-bold text-primary">{{ openai_model }}</h2>
-                        <p class="lead">OpenAI Model</p>
+                        <p class="lead">AI Technology</p>
                     </div>
                     <div class="col-md-3">
                         <h2 class="display-4 fw-bold {% if job_status == 'Running' %}text-success{% else %}text-secondary{% endif %}">
                             <i class="bi {% if job_status == 'Running' %}bi-play-circle-fill{% else %}bi-stop-circle{% endif %}"></i>
                         </h2>
-                        <p class="lead">Background Job: {{ job_status }}</p>
+                        <p class="lead">Auto-Discovery: {{ job_status }}</p>
                     </div>
                 </div>
             </div>
@@ -88,7 +91,7 @@
     <div class="col-12">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-dark">
-                <h3 class="mb-0">Recently Processed Games</h3>
+                <h3 class="mb-0"><i class="bi bi-stars me-2"></i> Latest Indie Additions</h3>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -119,7 +122,7 @@
                 </div>
             </div>
             <div class="card-footer text-end">
-                <a href="{{ url_for('games') }}" class="btn btn-outline-primary">View All Games</a>
+                <a href="{{ url_for('games') }}" class="btn btn-outline-primary">Explore Complete Collection</a>
             </div>
         </div>
     </div>
@@ -131,13 +134,12 @@
     <div class="col-md-6 mb-4">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <h3>Browse Library</h3>
+                <h3>Explore Indie Games</h3>
                 <p>
-                    View all processed games in your wiki library. Browse through
-                    the collection of games that have already been processed and
-                    have wiki entries generated.
+                    Discover our curated collection of indie games with detailed wiki entries.
+                    Find your next favorite indie title and learn about its development story.
                 </p>
-                <a href="{{ url_for('games') }}" class="btn btn-primary">View Library</a>
+                <a href="{{ url_for('games') }}" class="btn btn-primary">Browse Collection</a>
             </div>
         </div>
     </div>
@@ -145,12 +147,12 @@
     <div class="col-md-6 mb-4">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <h3>Search for Games</h3>
+                <h3>Find Hidden Gems</h3>
                 <p>
-                    Search for specific games to add to your wiki library. Find games
-                    by name and generate wiki entries for them manually.
+                    Looking for a specific indie title? Search our database to find games 
+                    by name and add them to the Indie Game Club collection.
                 </p>
-                <a href="{{ url_for('search') }}" class="btn btn-primary">Search Games</a>
+                <a href="{{ url_for('search') }}" class="btn btn-primary">Discover Games</a>
             </div>
         </div>
     </div>

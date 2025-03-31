@@ -47,53 +47,7 @@
             <div class="card-body">
                 <div class="references-container">
                     {% if game.References %}
-                        {% set refs = game.References %}
-                        <ol class="references-list">
-                            {% if '[' in refs and ']' in refs %}
-                                {# Handle list-like format #}
-                                {% if refs.startswith('[') and refs.endswith(']') %}
-                                    {% set refs_clean = refs[1:-1] %}
-                                    {% if "', '" in refs_clean %}
-                                        {% set refs_list = refs_clean.split("', '") %}
-                                        {% for ref in refs_list %}
-                                            {% set clean_ref = ref.replace("'", "").strip() %}
-                                            {% if clean_ref %}
-                                                <li class="mb-2">{{ clean_ref | safe }}</li>
-                                            {% endif %}
-                                        {% endfor %}
-                                    {% else %}
-                                        {# Try another pattern #}
-                                        {% set refs_list = refs.replace('[', '').replace(']', '').split(',') %}
-                                        {% for ref in refs_list %}
-                                            {% set clean_ref = ref.strip() %}
-                                            {% if clean_ref %}
-                                                <li class="mb-2">{{ clean_ref | safe }}</li>
-                                            {% endif %}
-                                        {% endfor %}
-                                    {% endif %}
-                                {% else %}
-                                    {# Multiple references with brackets inside text #}
-                                    {% set cleaned_text = refs %}
-                                    <li class="mb-2">{{ cleaned_text | safe }}</li>
-                                {% endif %}
-                            {% elif refs.startswith('"') and refs.endswith('"') %}
-                                {# Handle quoted string #}
-                                {% set refs_clean = refs[1:-1] %}
-                                <li class="mb-2">{{ refs_clean | safe }}</li>
-                            {% elif '\n' in refs %}
-                                {# Handle newline-separated references #}
-                                {% set refs_list = refs.split('\n') %}
-                                {% for ref in refs_list %}
-                                    {% set clean_ref = ref.strip() %}
-                                    {% if clean_ref %}
-                                        <li class="mb-2">{{ clean_ref | safe }}</li>
-                                    {% endif %}
-                                {% endfor %}
-                            {% else %}
-                                {# Plain text reference #}
-                                <li class="mb-2">{{ refs | safe }}</li>
-                            {% endif %}
-                        </ol>
+                        <p>{{ game.References | replace('\n', '<br>') | safe }}</p>
                     {% else %}
                         <p class="text-muted">No references available for this game.</p>
                     {% endif %}
@@ -133,6 +87,50 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+        
+        <!-- Store Links -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">Store Links</h5>
+            </div>
+            <div class="card-body">
+                {% if game['Steam URL'] %}
+                <div class="mb-3">
+                    <a href="{{ game['Steam URL'] }}" target="_blank" class="btn btn-primary">
+                        <i class="bi bi-steam"></i> View on Steam
+                    </a>
+                </div>
+                {% endif %}
+                
+                {% if game['Store Links'] %}
+                <div class="store-links">
+                    <h6>Available On:</h6>
+                    <ul class="list-unstyled">
+                        {% set store_links = game['Store Links'].split('\n') if '\n' in game['Store Links'] else [game['Store Links']] %}
+                        {% for link in store_links %}
+                            {% if link|trim %}
+                                {% set store_parts = link.split(': ', 1) %}
+                                {% if store_parts|length > 1 %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-shop"></i>
+                                        {% if store_parts[1]|trim %}
+                                            <a href="{{ store_parts[1] }}" target="_blank">{{ store_parts[0] }}</a>
+                                        {% else %}
+                                            {{ store_parts[0] }}
+                                        {% endif %}
+                                    </li>
+                                {% else %}
+                                    <li class="mb-2">{{ link }}</li>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% else %}
+                <p class="text-muted">No store links available for this game.</p>
+                {% endif %}
             </div>
         </div>
         

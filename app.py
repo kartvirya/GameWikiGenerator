@@ -115,8 +115,13 @@ def game_detail(game_id):
             flash("Game not found", "error")
             return redirect(url_for('games'))
             
-        # Handle NaN values in Image URL column
-        game['Image URL'] = game['Image URL'].apply(lambda x: '' if pd.isna(x) else x)
+        # Handle NaN values in columns
+        for column in ['Image URL', 'Steam URL', 'Store Links']:
+            if column in game.columns:
+                game[column] = game[column].apply(lambda x: '' if pd.isna(x) else x)
+            else:
+                # Add empty column if it doesn't exist (for older data)
+                game[column] = ''
             
         # Convert to dictionary for template
         game_data = game.iloc[0].to_dict()
@@ -130,6 +135,26 @@ def game_detail(game_id):
                     game_data['Image URL'] = game_details.get('background_image', '')
             except Exception as img_error:
                 logger.error(f"Error fetching image for game {game_id}: {img_error}")
+        
+        # If store links are missing but we have game ID, try to fetch them
+        if not game_data.get('Store Links') or not game_data.get('Steam URL'):
+            try:
+                logger.info(f"Fetching missing store links for game {game_id}")
+                game_details = rawg_api.get_game_details(game_id)
+                if game_details:
+                    if 'steam_url' in game_details and not game_data.get('Steam URL'):
+                        game_data['Steam URL'] = game_details.get('steam_url', '')
+                    
+                    if 'store_links' in game_details and not game_data.get('Store Links'):
+                        # Format store links
+                        store_links = []
+                        for store_name, url in game_details.get('store_links', {}).items():
+                            if url:
+                                store_links.append(f"{store_name}: {url}")
+                        
+                        game_data['Store Links'] = "\n".join(store_links)
+            except Exception as store_error:
+                logger.error(f"Error fetching store links for game {game_id}: {store_error}")
         
         logger.info(f"Displaying details for game: {game_data.get('Name', 'Unknown')}")
         return render_template('game_detail.html', game=game_data)

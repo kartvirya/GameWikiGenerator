@@ -1,7 +1,7 @@
 import os
 import time
 import logging
-import schedule
+import schedule  # type: ignore
 from datetime import datetime
 
 from config import Config
@@ -100,7 +100,9 @@ class GameWikiGenerator:
                 'Image URL': game_details.get('background_image', ''),
                 'Wiki Entry': wiki_entry,
                 'References': references,
-                'Additional Info': self.get_additional_info(game_details)
+                'Additional Info': self.get_additional_info(game_details),
+                'Steam URL': game_details.get('steam_url', ''),
+                'Store Links': self.format_store_links(game_details.get('store_links', {}))
             }
             
             # Save to Excel
@@ -162,6 +164,25 @@ class GameWikiGenerator:
             additional_info.append(f"Platforms: {', '.join(platforms)}")
             
         return "\n".join(additional_info)
+        
+    def format_store_links(self, store_links):
+        """Format store links for Excel storage.
+        
+        Args:
+            store_links: Dictionary of store links keyed by store name
+            
+        Returns:
+            Formatted string of store links
+        """
+        if not store_links:
+            return ""
+            
+        formatted_links = []
+        for store_name, url in store_links.items():
+            if url:  # Only add if URL exists
+                formatted_links.append(f"{store_name}: {url}")
+                
+        return "\n".join(formatted_links)
 
     def run_daily_job(self, limit=None):
         """Main job to run daily processing of games.

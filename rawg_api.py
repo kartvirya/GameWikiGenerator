@@ -73,7 +73,8 @@ class RawgAPI:
             return response.json()
             
         except requests.exceptions.HTTPError as e:
-            if response.status_code == 429:  # Too Many Requests
+            response_obj = locals().get('response')
+            if response_obj and response_obj.status_code == 429:  # Too Many Requests
                 logger.warning("Rate limit exceeded, waiting before retrying")
                 time.sleep(60)  # Wait a minute before retrying
                 return self._make_request(endpoint, params)
@@ -84,7 +85,7 @@ class RawgAPI:
         except ValueError as e:
             logger.error(f"JSON parsing error: {e}")
             
-        return None
+        return {}
     
     def get_indie_games(self, page: int = 1, page_size: int = 20) -> List[Dict[str, Any]]:
         """Get a list of indie games.
@@ -141,6 +142,38 @@ class RawgAPI:
             game_data['screenshots'] = screenshots['results']
         else:
             game_data['screenshots'] = []
+        
+        # Get store information
+        stores = self._make_request(f'games/{game_id}/stores')
+        if stores and 'results' in stores:
+            game_data['stores'] = stores['results']
+        else:
+            # Check if store data is already in the basic details
+            if 'stores' not in game_data:
+                game_data['stores'] = []
+                
+        # Process store links for easy access
+        if 'stores' in game_data:
+            # Create a dictionary of store links by store name
+            game_data['store_links'] = {}
+            for store_data in game_data['stores']:
+                if isinstance(store_data, dict) and 'store' in store_data:
+                    # Get the store information (name, slug)
+                    store = store_data.get('store', {})
+                    store_name = store.get('name', '')
+                    
+                    # Get the URL if available
+                    store_url = store_data.get('url', '')
+                    
+                    # Only add if we have a store name
+                    if store_name:
+                        game_data['store_links'][store_name] = store_url
+                
+        # Process Steam store link specifically
+        if 'store_links' in game_data and 'Steam' in game_data['store_links']:
+            game_data['steam_url'] = game_data['store_links']['Steam']
+        else:
+            game_data['steam_url'] = ''
             
         return game_data
     

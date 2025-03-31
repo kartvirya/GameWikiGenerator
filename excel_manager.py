@@ -33,6 +33,8 @@ class ExcelManager:
                 'Wiki Entry',
                 'References',
                 'Additional Info',
+                'Steam URL',
+                'Store Links',
                 'Date Added'
             ])
             
