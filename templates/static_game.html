@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ game['Name'] }} - Indie Game Club</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="{{ game['Wiki Entry']|truncate_html(160) }}">
+    <meta name="keywords" content="indie games, {{ game['Name'] }}, indie game wiki, game reviews, {{ game['Studio'] }}">
+    <meta name="author" content="Indie Game Club">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ game['Name'] }} - Indie Game Club">
+    <meta property="og:description" content="{{ game['Wiki Entry']|truncate_html(160) }}">
+    {% if game['Image URL'] %}
+    <meta property="og:image" content="{{ game['Image URL'] }}">
+    {% endif %}
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="{{ game['Name'] }} - Indie Game Club">
+    <meta property="twitter:description" content="{{ game['Wiki Entry']|truncate_html(160) }}">
+    {% if game['Image URL'] %}
+    <meta property="twitter:image" content="{{ game['Image URL'] }}">
+    {% endif %}
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Favicon -->
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    
+    <style>
+        .references {
+            background-color: rgba(33, 37, 41, 0.8);
+            border-left: 4px solid var(--bs-primary);
+            padding: 1rem;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+        }
+        .store-link {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .game-header {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            padding: 8rem 0 2rem;
+            position: relative;
+            color: white;
+        }
+        .game-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.8));
+            z-index: 1;
+        }
+        .game-header .container {
+            position: relative;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm mb-4">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <i class="bi bi-joystick me-2"></i>
+                Indie Game Club
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/games">Game Library</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/search">Search</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Game Header -->
+    <header class="game-header mb-5" {% if game['Image URL'] %}style="background-image: url('{{ game['Image URL'] }}');"{% endif %}>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold">{{ game['Name'] }}</h1>
+                    <p class="lead">
+                        <span class="badge bg-primary me-2">{{ game['Studio'] }}</span>
+                        <span class="badge bg-secondary">{{ game['Release Date'] }}</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mb-5">
+        <div class="row">
+            <!-- Game Details -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h2 class="mb-4">About the Game</h2>
+                        
+                        <!-- Game Description -->
+                        <div class="wiki-content mb-4">
+                            {{ game['Wiki Entry']|safe }}
+                        </div>
+                        
+                        <!-- References -->
+                        {% if game['References'] %}
+                        <div class="references">
+                            <h5>References</h5>
+                            {{ game['References']|safe }}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Additional Info -->
+                        {% if game['Additional Info'] %}
+                        <div class="mt-4">
+                            <h3>Additional Information</h3>
+                            <p>{{ game['Additional Info'] }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Game Image -->
+                {% if game['Image URL'] %}
+                <div class="card border-0 shadow-sm mb-4">
+                    <img src="{{ game['Image URL'] }}" alt="{{ game['Name'] }}" class="card-img-top">
+                </div>
+                {% endif %}
+                
+                <!-- Game Info -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-dark">
+                        <h3 class="card-title mb-0">Game Info</h3>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Studio</span>
+                                <span class="fw-bold">{{ game['Studio'] }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Release Date</span>
+                                <span class="fw-bold">{{ game['Release Date'] }}</span>
+                            </li>
+                            {% if game['Rating'] %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Rating</span>
+                                <span class="fw-bold">{{ game['Rating'] }}</span>
+                            </li>
+                            {% endif %}
+                            {% if game['Number of Reviews'] %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Reviews</span>
+                                <span class="fw-bold">{{ game['Number of Reviews'] }}</span>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Store Links -->
+                {% if game['Steam URL'] or game['Store Links'] %}
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-dark">
+                        <h3 class="card-title mb-0">Where to Play</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if game['Steam URL'] %}
+                        <a href="{{ game['Steam URL'] }}" class="btn btn-primary mb-3 w-100" target="_blank">
+                            <i class="bi bi-steam me-2"></i> View on Steam
+                        </a>
+                        {% endif %}
+                        
+                        {% if game['Store Links'] %}
+                        <h5>Other Stores:</h5>
+                        {% for store in game['Store Links'].split('\n') %}
+                            {% if store %}
+                            <div class="store-link">
+                                {% set store_parts = store.split(': ', 1) %}
+                                {% if store_parts|length > 1 %}
+                                <a href="{{ store_parts[1] }}" target="_blank" class="text-decoration-none">
+                                    {{ store_parts[0] }} <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                </a>
+                                {% else %}
+                                {{ store }}
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="bi bi-joystick me-2"></i> Indie Game Club</h5>
+                    <p class="text-muted">
+                        Your comprehensive resource for indie game information, reviews, and discovery.
+                        Powered by RAWG.io and OpenAI technology.
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <h5>Resources</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="https://rawg.io/" target="_blank" class="text-light">RAWG.io</a></li>
+                        <li><a href="https://openai.com/" target="_blank" class="text-light">OpenAI</a></li>
+                        <li><a href="https://store.steampowered.com/tags/en/Indie/" target="_blank" class="text-light">Steam Indie Games</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col text-center">
+                    <p class="mb-0 text-muted">&copy; 2024 Indie Game Club | All game information and images sourced from RAWG.io</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

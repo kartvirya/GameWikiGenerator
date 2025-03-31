@@ -1,7 +1,8 @@
 import os
 import threading
 import pandas as pd
-from flask import Flask, render_template, request, redirect, url_for, flash
+from datetime import datetime
+from flask import Flask, render_template, request, redirect, url_for, flash, Response, make_response
 
 from config import Config
 from logger import setup_logger
@@ -334,6 +335,171 @@ def truncate_html(text, length=200):
         truncated = truncated[:last_space]
         
     return truncated + "..."
+
+@app.route('/sitemap.xml')
+def sitemap():
+    """Generate a sitemap.xml file for search engines."""
+    try:
+        # Get the site URL dynamically from request
+        host_url = request.host_url.rstrip('/')
+        
+        # Start XML content
+        xml_content = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        xml_content += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        
+        # Add static pages
+        today = datetime.utcnow().strftime('%Y-%m-%d')
+        
+        # Home page
+        xml_content += f'  <url>\n    <loc>{host_url}/</loc>\n    <lastmod>{today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n'
+        
+        # Games list page
+        xml_content += f'  <url>\n    <loc>{host_url}/games</loc>\n    <lastmod>{today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.9</priority>\n  </url>\n'
+        
+        # Search page
+        xml_content += f'  <url>\n    <loc>{host_url}/search</loc>\n    <lastmod>{today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n'
+        
+        # Add all game detail pages
+        try:
+            df = pd.read_excel(config.EXCEL_FILE_PATH, engine='openpyxl')
+            
+            # For each game, add a URL
+            for _, game in df.iterrows():
+                game_id = game['Game ID']
+                # Use the last modified date of the game if available, otherwise use today
+                lastmod = today
+                xml_content += f'  <url>\n    <loc>{host_url}/game/{game_id}</loc>\n    <lastmod>{lastmod}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n'
+                
+                # Add the static HTML version as well
+                xml_content += f'  <url>\n    <loc>{host_url}/static-game/{game_id}.html</loc>\n    <lastmod>{lastmod}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n'
+        
+        except Exception as e:
+            logger.error(f"Error generating game URLs for sitemap: {e}")
+        
+        # Close XML
+        xml_content += '</urlset>'
+        
+        # Return XML response
+        response = make_response(xml_content)
+        response.headers["Content-Type"] = "application/xml"
+        
+        logger.info("Sitemap.xml generated successfully")
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error generating sitemap: {e}")
+        return Response("Error generating sitemap", status=500)
+
+@app.route('/robots.txt')
+def robots():
+    """Generate a robots.txt file for search engines."""
+    host_url = request.host_url.rstrip('/')
+    content = f"User-agent: *\nAllow: /\nSitemap: {host_url}/sitemap.xml\n"
+    response = make_response(content)
+    response.headers["Content-Type"] = "text/plain"
+    return response
+
+@app.route('/static-game/<int:game_id>.html')
+def static_game_page(game_id):
+    """Generate a static version of the game detail page for SEO."""
+    try:
+        # Load the game data
+        df = pd.read_excel(config.EXCEL_FILE_PATH, engine='openpyxl')
+        
+        # Find the game by ID
+        game = df[df['Game ID'] == game_id]
+        
+        if len(game) == 0:
+            logger.error(f"Game not found for static page: {game_id}")
+            return "Game not found", 404
+            
+        # Handle NaN values in columns
+        for column in ['Image URL', 'Steam URL', 'Store Links']:
+            if column in game.columns:
+                game[column] = game[column].apply(lambda x: '' if pd.isna(x) else x)
+            else:
+                # Add empty column if it doesn't exist (for older data)
+                game[column] = ''
+            
+        # Convert to dictionary for template
+        game_data = game.iloc[0].to_dict()
+        
+        # Render the template
+        html_content = render_template('static_game.html', game=game_data)
+        
+        # Return HTML response
+        response = make_response(html_content)
+        response.headers["Content-Type"] = "text/html"
+        
+        logger.info(f"Static page generated for game: {game_data.get('Name', 'Unknown')}")
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error generating static game page: {e}")
+        return "Error generating page", 500
+
+@app.route('/generate-static-pages')
+def generate_all_static_pages():
+    """Admin route to trigger regeneration of all static pages."""
+    try:
+        # This is an administrative function that could be run periodically
+        # Start a background thread to generate static files
+        def generate_pages_thread():
+            try:
+                df = pd.read_excel(config.EXCEL_FILE_PATH, engine='openpyxl')
+                game_count = len(df)
+                
+                logger.info(f"Starting static page generation for {game_count} games")
+                
+                # Create the static directory if it doesn't exist
+                static_dir = os.path.join(app.static_folder, 'pages')
+                os.makedirs(static_dir, exist_ok=True)
+                
+                # For each game, generate a static HTML file
+                for _, game in df.iterrows():
+                    try:
+                        game_id = game['Game ID']
+                        
+                        # Handle NaN values
+                        game_data = {}
+                        for column, value in game.items():
+                            game_data[column] = '' if pd.isna(value) else value
+                        
+                        # Render the template
+                        html_content = render_template('static_game.html', game=game_data)
+                        
+                        # Write to file
+                        file_path = os.path.join(static_dir, f"{game_id}.html")
+                        with open(file_path, 'w', encoding='utf-8') as f:
+                            f.write(html_content)
+                            
+                        logger.info(f"Generated static page for game {game_id}: {game_data.get('Name', 'Unknown')}")
+                        
+                    except Exception as game_error:
+                        logger.error(f"Error generating static page for game {game.get('Game ID', 'Unknown')}: {game_error}")
+                
+                # Generate index file
+                index_html = render_template('static_index.html', games=df.to_dict('records'))
+                with open(os.path.join(static_dir, "index.html"), 'w', encoding='utf-8') as f:
+                    f.write(index_html)
+                
+                logger.info(f"Static page generation completed for {game_count} games")
+                
+            except Exception as e:
+                logger.error(f"Error in static page generation thread: {e}")
+        
+        # Start the thread
+        thread = threading.Thread(target=generate_pages_thread)
+        thread.daemon = True
+        thread.start()
+        
+        flash("Static page generation started. This may take a few minutes.", "info")
+        return redirect(url_for('index'))
+        
+    except Exception as e:
+        logger.error(f"Error starting static page generation: {e}")
+        flash("Error starting static page generation", "error")
+        return redirect(url_for('index'))
 
 # Add the home page route
 app.add_url_rule('/', 'index', index)
