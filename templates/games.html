@@ -61,10 +61,21 @@
             <div class="card-header bg-dark">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">All Processed Games</h5>
-                    <form class="d-flex">
-                        <input class="form-control me-2" type="search" placeholder="Filter by name..." aria-label="Search">
-                        <button class="btn btn-outline-primary" type="submit">Filter</button>
-                    </form>
+                    <div class="d-flex align-items-center">
+                        <div class="dropdown me-3">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                Sort: {{ 'Metacritic Score' if sort_by == 'metacritic' else 'Most Recent' }}
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                                <li><a class="dropdown-item {% if sort_by == 'recent' %}active{% endif %}" href="{{ url_for('games', page=1) }}">Most Recent</a></li>
+                                <li><a class="dropdown-item {% if sort_by == 'metacritic' %}active{% endif %}" href="{{ url_for('games', sort_by='metacritic', page=1) }}">Metacritic Score</a></li>
+                            </ul>
+                        </div>
+                        <form class="d-flex">
+                            <input class="form-control me-2" type="search" placeholder="Filter by name..." aria-label="Search">
+                            <button class="btn btn-outline-primary" type="submit">Filter</button>
+                        </form>
+                    </div>
                 </div>
             </div>
             <div class="card-body">
@@ -77,6 +88,7 @@
                                     <th>Name</th>
                                     <th>Studio</th>
                                     <th>Release Date</th>
+                                    <th>Metacritic</th>
                                     <th>Game ID</th>
                                     <th>Action</th>
                                 </tr>
@@ -96,6 +108,15 @@
                                     <td>{{ game.Name }}</td>
                                     <td>{{ game.Studio }}</td>
                                     <td>{{ game['Release Date'] }}</td>
+                                    <td>
+                                        {% if game['Metacritic'] %}
+                                            <span class="badge bg-{{ 'success' if game['Metacritic'] >= 75 else 'warning' if game['Metacritic'] >= 60 else 'danger' }}">
+                                                {{ game['Metacritic'] }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
                                     <td>{{ game['Game ID'] }}</td>
                                     <td>
                                         <a href="{{ url_for('game_detail', game_id=game['Game ID']) }}" 
@@ -112,7 +133,7 @@
                     <nav aria-label="Page navigation">
                         <ul class="pagination justify-content-center mt-4">
                             <li class="page-item {% if page == 1 %}disabled{% endif %}">
-                                <a class="page-link" href="{{ url_for('games', page=page-1) }}" tabindex="-1" 
+                                <a class="page-link" href="{{ url_for('games', sort_by=sort_by, page=page-1) }}" tabindex="-1" 
                                    aria-disabled="{% if page == 1 %}true{% else %}false{% endif %}">Previous</a>
                             </li>
                             
@@ -121,7 +142,7 @@
                                     <li class="page-item active"><span class="page-link">{{ i }}</span></li>
                                 {% elif i <= 3 or i >= total_pages - 2 or (i >= page - 1 and i <= page + 1) %}
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ url_for('games', page=i) }}">{{ i }}</a>
+                                        <a class="page-link" href="{{ url_for('games', sort_by=sort_by, page=i) }}">{{ i }}</a>
                                     </li>
                                 {% elif i == 4 and page > 5 or i == total_pages - 3 and page < total_pages - 4 %}
                                     <li class="page-item disabled"><span class="page-link">...</span></li>
@@ -129,7 +150,7 @@
                             {% endfor %}
                             
                             <li class="page-item {% if page == total_pages %}disabled{% endif %}">
-                                <a class="page-link" href="{{ url_for('games', page=page+1) }}">Next</a>
+                                <a class="page-link" href="{{ url_for('games', sort_by=sort_by, page=page+1) }}">Next</a>
                             </li>
                         </ul>
                     </nav>

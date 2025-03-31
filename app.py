@@ -33,8 +33,19 @@ def index():
         df = pd.read_excel(config.EXCEL_FILE_PATH, engine='openpyxl')
         game_count = len(df)
         
-        # Get some stats for display
+        # Get most recent games for display
         most_recent_games = df.sort_index(ascending=False).head(5).to_dict('records')
+        
+        # Get top rated games by Metacritic score
+        # First, ensure Metacritic column exists and handle non-numeric values
+        if 'Metacritic' in df.columns:
+            # Convert to numeric, coercing errors to NaN
+            df['Metacritic'] = pd.to_numeric(df['Metacritic'], errors='coerce')
+            # Filter out NaN values and sort by Metacritic descending
+            top_rated_df = df.dropna(subset=['Metacritic']).sort_values('Metacritic', ascending=False)
+            top_rated_games = top_rated_df.head(5).to_dict('records')
+        else:
+            top_rated_games = []
         
         # Check if a background job is running
         job_status = "Running" if job_running else "Not running"
@@ -45,9 +56,10 @@ def index():
         logger.info(f"Home page loaded. Total games: {game_count}, Job status: {job_status}")
         
     except Exception as e:
-        logger.error(f"Error loading game count: {e}")
+        logger.error(f"Error loading game data: {e}")
         game_count = 0
         most_recent_games = []
+        top_rated_games = []
         job_status = "Unknown"
         openai_model = "GPT-3.5"
     
@@ -56,22 +68,34 @@ def index():
         'index.html',
         game_count=game_count,
         most_recent_games=most_recent_games,
+        top_rated_games=top_rated_games,
         job_status=job_status,
         openai_model=openai_model
     )
 
 @app.route('/games')
 @app.route('/games/<int:page>')
-def games(page=1):
+@app.route('/games/sort/<sort_by>/<int:page>')
+def games(page=1, sort_by='recent'):
     """Display all processed games with pagination."""
     try:
         # Always reload games from Excel to get the latest data
         # This ensures newly processed games appear immediately
         df = pd.read_excel(config.EXCEL_FILE_PATH, engine='openpyxl')
         
-        # Sort by most recently added (assuming the file is in chronological order)
-        # This shows newest games first
-        df = df.sort_index(ascending=False)
+        # Convert Metacritic to numeric for proper sorting
+        if 'Metacritic' in df.columns:
+            df['Metacritic'] = pd.to_numeric(df['Metacritic'], errors='coerce')
+        
+        # Sort based on sort_by parameter
+        if sort_by == 'metacritic':
+            # Sort by Metacritic score (highest first)
+            df = df.sort_values('Metacritic', ascending=False, na_position='last')
+            logger.info("Sorting games by Metacritic score")
+        else:
+            # Default sort by most recently added (assuming the file is in chronological order)
+            df = df.sort_index(ascending=False)
+            logger.info("Sorting games by most recent")
         
         # Handle NaN values in Image URL column
         df['Image URL'] = df['Image URL'].apply(lambda x: '' if pd.isna(x) else x)
@@ -95,12 +119,13 @@ def games(page=1):
             games=games_page,
             page=page,
             total_pages=total_pages,
-            total_games=total_games
+            total_games=total_games,
+            sort_by=sort_by
         )
         
     except Exception as e:
         logger.error(f"Error loading games: {e}")
-        return render_template('games.html', games=[], page=1, total_pages=1, total_games=0)
+        return render_template('games.html', games=[], page=1, total_pages=1, total_games=0, sort_by='recent')
 
 @app.route('/game/<int:game_id>')
 def game_detail(game_id):

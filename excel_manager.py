@@ -28,7 +28,8 @@ class ExcelManager:
                 'Name',
                 'Studio',
                 'Release Date',
-                'Review Count',
+                'Metacritic',  # Changed from Review Count 
+                'Ratings Count',  # Added new column for RAWG ratings count
                 'Image URL',
                 'Wiki Entry',
                 'References',

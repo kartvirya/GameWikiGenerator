@@ -83,6 +83,12 @@
                         <h5 class="card-title">{{ game['Name'] }}</h5>
                         <p class="card-text small text-muted">
                             {{ game['Studio'] }} | {{ game['Release Date'] }}
+                            {% if game['Metacritic'] %}
+                            <br>
+                            <span class="badge bg-{{ 'success' if game['Metacritic'] >= 75 else 'warning' if game['Metacritic'] >= 60 else 'danger' }}">
+                                Metacritic: {{ game['Metacritic'] }}
+                            </span>
+                            {% endif %}
                         </p>
                         <p class="card-text">
                             {{ game['Wiki Entry']|truncate_html(120) }}

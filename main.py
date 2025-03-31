@@ -93,11 +93,10 @@ class GameWikiGenerator:
             # Log the available fields for debugging
             logger.info(f"Available game_details fields: {list(game_details.keys())}")
             
-            # Get the correct review count
-            # Check if we should use metacritic instead of ratings_count
-            review_count = game_details.get('ratings_count', 0)
-            if not review_count and 'metacritic' in game_details:
-                review_count = game_details.get('metacritic', 0)
+            # Always prioritize using Metacritic score instead of ratings_count
+            # This is the score we want to display, not the number of ratings
+            metacritic_score = game_details.get('metacritic', 0)
+            ratings_count = game_details.get('ratings_count', 0)
             
             # Prepare data for Excel
             excel_data = {
@@ -105,7 +104,8 @@ class GameWikiGenerator:
                 'Name': game_details.get('name', ''),
                 'Studio': ', '.join(dev_names),
                 'Release Date': game_details.get('released', ''),
-                'Review Count': review_count,
+                'Metacritic': metacritic_score,  # Store as Metacritic rather than Review Count
+                'Ratings Count': ratings_count,  # Also store ratings count separately 
                 'Image URL': game_details.get('background_image', ''),
                 'Wiki Entry': wiki_entry,
                 'References': references,
@@ -218,8 +218,9 @@ class GameWikiGenerator:
         processed_count = 0
         while self.daily_request_count < self.request_limit and processed_count < effective_limit:
             try:
-                # Get indie games (can be customized based on need)
-                games = self.rawg_api.get_indie_games(page)
+                # Get indie games with a minimum Metacritic score of 60
+                # This helps ensure we're processing higher quality games first
+                games = self.rawg_api.get_indie_games(page, metacritic_min=60)
                 
                 if not games:
                     logger.info("No more games to process or API limit reached")

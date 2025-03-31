@@ -95,9 +95,15 @@
                             <td>{{ game['Release Date'] }}</td>
                         </tr>
                         <tr>
-                            <th>Review Count:</th>
-                            <td>{{ game['Review Count'] }}</td>
+                            <th>Metacritic Score:</th>
+                            <td>{{ game['Metacritic'] }}</td>
                         </tr>
+                        {% if game['Ratings Count'] %}
+                        <tr>
+                            <th>Ratings Count:</th>
+                            <td>{{ game['Ratings Count'] }}</td>
+                        </tr>
+                        {% endif %}
                         <tr>
                             <th>Processed on:</th>
                             <td>{{ game['Date Added'] }}</td>

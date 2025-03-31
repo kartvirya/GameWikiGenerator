@@ -176,10 +176,16 @@
                                 <span class="fw-bold">{{ game['Rating'] }}</span>
                             </li>
                             {% endif %}
-                            {% if game['Review Count'] %}
+                            {% if game['Metacritic'] %}
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>Reviews</span>
-                                <span class="fw-bold">{{ game['Review Count'] }}</span>
+                                <span>Metacritic Score</span>
+                                <span class="fw-bold">{{ game['Metacritic'] }}</span>
+                            </li>
+                            {% endif %}
+                            {% if game['Ratings Count'] %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>User Ratings</span>
+                                <span class="fw-bold">{{ game['Ratings Count'] }}</span>
                             </li>
                             {% endif %}
                         </ul>

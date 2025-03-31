@@ -96,6 +96,61 @@
     </div>
 </div>
 
+<!-- Top Rated Games Section -->
+{% if top_rated_games and top_rated_games|length > 0 %}
+<div class="row my-5">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-dark">
+                <h3 class="mb-0"><i class="bi bi-trophy me-2"></i> Top Rated Indies</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Game</th>
+                                <th>Studio</th>
+                                <th>Metacritic</th>
+                                <th>Release Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for game in top_rated_games %}
+                            <tr>
+                                <td>
+                                    {% if game['Image URL'] %}
+                                    <img src="{{ game['Image URL'] }}" alt="{{ game.Name }}" class="img-thumbnail me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                    {% endif %}
+                                    {{ game['Name'] }}
+                                </td>
+                                <td>{{ game['Studio'] }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if game['Metacritic'] >= 75 else 'warning' if game['Metacritic'] >= 60 else 'danger' }}">
+                                        {{ game['Metacritic'] }}
+                                    </span>
+                                </td>
+                                <td>{{ game['Release Date'] }}</td>
+                                <td>
+                                    <a href="{{ url_for('game_detail', game_id=game['Game ID']) }}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer text-end">
+                <a href="{{ url_for('games') }}" class="btn btn-outline-primary">Explore All Top Rated</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Recent Games Section -->
 {% if most_recent_games and most_recent_games|length > 0 %}
 <div class="row my-5">
@@ -111,6 +166,7 @@
                             <tr>
                                 <th>Game</th>
                                 <th>Studio</th>
+                                <th>Metacritic</th>
                                 <th>Release Date</th>
                                 <th>Actions</th>
                             </tr>
@@ -118,8 +174,22 @@
                         <tbody>
                             {% for game in most_recent_games %}
                             <tr>
-                                <td>{{ game['Name'] }}</td>
+                                <td>
+                                    {% if game['Image URL'] %}
+                                    <img src="{{ game['Image URL'] }}" alt="{{ game.Name }}" class="img-thumbnail me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                    {% endif %}
+                                    {{ game['Name'] }}
+                                </td>
                                 <td>{{ game['Studio'] }}</td>
+                                <td>
+                                    {% if game['Metacritic'] %}
+                                    <span class="badge bg-{{ 'success' if game['Metacritic'] >= 75 else 'warning' if game['Metacritic'] >= 60 else 'danger' }}">
+                                        {{ game['Metacritic'] }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
                                 <td>{{ game['Release Date'] }}</td>
                                 <td>
                                     <a href="{{ url_for('game_detail', game_id=game['Game ID']) }}" class="btn btn-sm btn-primary">
