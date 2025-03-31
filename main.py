@@ -90,13 +90,22 @@ class GameWikiGenerator:
             developers = game_details.get('developers', [])
             dev_names = [dev.get('name', '') for dev in developers if dev and isinstance(dev, dict)]
             
+            # Log the available fields for debugging
+            logger.info(f"Available game_details fields: {list(game_details.keys())}")
+            
+            # Get the correct review count
+            # Check if we should use metacritic instead of ratings_count
+            review_count = game_details.get('ratings_count', 0)
+            if not review_count and 'metacritic' in game_details:
+                review_count = game_details.get('metacritic', 0)
+            
             # Prepare data for Excel
             excel_data = {
                 'Game ID': game_id,
                 'Name': game_details.get('name', ''),
                 'Studio': ', '.join(dev_names),
                 'Release Date': game_details.get('released', ''),
-                'Review Count': game_details.get('ratings_count', 0),
+                'Review Count': review_count,
                 'Image URL': game_details.get('background_image', ''),
                 'Wiki Entry': wiki_entry,
                 'References': references,

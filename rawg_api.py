@@ -42,7 +42,7 @@ class RawgAPI:
             logger.warning(f"Rate limit approaching, sleeping for {sleep_time} seconds")
             time.sleep(sleep_time)
     
-    def _make_request(self, endpoint: str, params: Dict[str, Any] = None) -> Optional[Dict[str, Any]]:
+    def _make_request(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Make a request to the RAWG API.
         
         Args:
@@ -50,7 +50,7 @@ class RawgAPI:
             params: Optional query parameters
             
         Returns:
-            The JSON response or None if there was an error
+            The JSON response as dict or empty dict if there was an error
         """
         if params is None:
             params = {}
@@ -87,12 +87,13 @@ class RawgAPI:
             
         return {}
     
-    def get_indie_games(self, page: int = 1, page_size: int = 20) -> List[Dict[str, Any]]:
+    def get_indie_games(self, page: int = 1, page_size: int = 20, metacritic_min: Optional[int] = None) -> List[Dict[str, Any]]:
         """Get a list of indie games.
         
         Args:
             page: The page number to request
             page_size: The number of results per page
+            metacritic_min: Optional minimum metacritic score for filtering
             
         Returns:
             A list of games or an empty list if there was an error
@@ -103,6 +104,10 @@ class RawgAPI:
             'genres': 'indie',
             'ordering': '-added'  # Sort by most recently added
         }
+        
+        # Add metacritic filter if specified
+        if metacritic_min:
+            params['metacritic'] = f"{metacritic_min},100"  # Range from min to 100
         
         response = self._make_request('games', params)
         
