@@ -25,7 +25,6 @@
         </a>
         <h1 class="mb-2">{{ game.Name }}</h1>
         <div class="d-flex flex-wrap gap-2 mb-3">
-            <span class="badge bg-primary">{{ game.Studio }}</span>
             <span class="badge bg-info">Released: {{ game['Release Date'] }}</span>
             <span class="badge bg-secondary">Game ID: {{ game['Game ID'] }}</span>
             {% if game['Review Count'] %}
@@ -39,6 +38,18 @@
             <img src="{{ game['Image URL'] }}" alt="{{ game.Name }}" class="img-fluid rounded shadow" style="max-height: 300px; object-fit: cover;">
         </div>
         {% endif %}
+        
+        <div class="mb-3">
+            {% if game['Steam URL'] %}
+            <a href="{{ game['Steam URL'] }}" target="_blank" class="btn btn-primary btn-lg">
+                <i class="bi bi-steam me-2"></i> Open on Steam
+            </a>
+            {% else %}
+            <a href="https://store.steampowered.com/search/?term={{ game.Name|urlencode }}" target="_blank" class="btn btn-primary btn-lg">
+                <i class="bi bi-steam me-2"></i> View on Steam
+            </a>
+            {% endif %}
+        </div>
     </div>
 </div>
 
@@ -59,12 +70,26 @@
         <!-- References -->
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-dark">
-                <h5 class="mb-0">References</h5>
+                <h5 class="mb-0 text-white">References</h5>
             </div>
             <div class="card-body">
                 <div class="references-container">
                     {% if game.References %}
-                        <p>{{ game.References | replace('\n', '<br>') | safe }}</p>
+                        <ol class="ps-4">
+                            {% for ref in game.References.strip('[]').split(',') %}
+                                {% set ref_clean = ref.strip().strip("'") %}
+                                <li class="mb-2">
+                                    {% if 'Retrieved from' in ref_clean %}
+                                        {% set parts = ref_clean.split('Retrieved from') %}
+                                        {% set title = parts[0].strip() %}
+                                        {% set url = parts[1].strip().strip("'") %}
+                                        <a href="{{ url }}" target="_blank" style="color: #9370DB;">{{ title }}</a>
+                                    {% else %}
+                                        <a href="#" style="color: #9370DB; text-decoration: none; cursor: default;">{{ ref_clean }}</a>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ol>
                     {% else %}
                         <p class="text-muted">No references available for this game.</p>
                     {% endif %}
@@ -95,17 +120,17 @@
                             <td>{{ game['Release Date'] }}</td>
                         </tr>
                         <tr>
-                            <th>Metacritic Score:</th>
-                            <td>{{ game['Metacritic'] }}</td>
+                            <th>Reviews Count:</th>
+                            <td>
+                                {% if game['Review Count'] %}
+                                {{ game['Review Count'] }}
+                                {% else %}
+                                <span class="text-muted">0</span>
+                                {% endif %}
+                            </td>
                         </tr>
-                        {% if game['Ratings Count'] %}
                         <tr>
-                            <th>Ratings Count:</th>
-                            <td>{{ game['Ratings Count'] }}</td>
-                        </tr>
-                        {% endif %}
-                        <tr>
-                            <th>Processed on:</th>
+                            <th>Date Indexed:</th>
                             <td>{{ game['Date Added'] }}</td>
                         </tr>
                     </tbody>
@@ -119,14 +144,6 @@
                 <h5 class="mb-0">Store Links</h5>
             </div>
             <div class="card-body">
-                {% if game['Steam URL'] %}
-                <div class="mb-3">
-                    <a href="{{ game['Steam URL'] }}" target="_blank" class="btn btn-primary">
-                        <i class="bi bi-steam"></i> View on Steam
-                    </a>
-                </div>
-                {% endif %}
-                
                 {% if game['Store Links'] %}
                 <div class="store-links">
                     <h6>Available On:</h6>
@@ -160,11 +177,32 @@
         <!-- Additional Info -->
         {% if game['Additional Info'] %}
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-transparent">
-                <h5 class="mb-0">Additional Information</h5>
+            <div class="card-header bg-dark">
+                <h5 class="mb-0 text-white">Additional Information</h5>
             </div>
-            <div class="card-body">
-                {{ game['Additional Info'] | safe }}
+            <div class="card-body p-0">
+                {% set info_lines = game['Additional Info'].split('\n') %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <tbody>
+                            {% for line in info_lines %}
+                                {% if line|trim %}
+                                    {% set parts = line.split(': ', 1) %}
+                                    {% if parts|length > 1 %}
+                                    <tr>
+                                        <td class="fw-bold text-primary" style="width: 40%">{{ parts[0] }}</td>
+                                        <td>{{ parts[1] }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="2">{{ line }}</td>
+                                    </tr>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
         {% endif %}

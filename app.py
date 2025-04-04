@@ -1,6 +1,7 @@
 import os
 import threading
 import pandas as pd
+import re
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, Response, make_response
 
@@ -36,13 +37,13 @@ def index():
         # Get most recent games for display
         most_recent_games = df.sort_index(ascending=False).head(5).to_dict('records')
         
-        # Get top rated games by Metacritic score
-        # First, ensure Metacritic column exists and handle non-numeric values
-        if 'Metacritic' in df.columns:
+        # Get top rated games by Review Count
+        # First, ensure Review Count column exists and handle non-numeric values
+        if 'Review Count' in df.columns:
             # Convert to numeric, coercing errors to NaN
-            df['Metacritic'] = pd.to_numeric(df['Metacritic'], errors='coerce')
-            # Filter out NaN values and sort by Metacritic descending
-            top_rated_df = df.dropna(subset=['Metacritic']).sort_values('Metacritic', ascending=False)
+            df['Review Count'] = pd.to_numeric(df['Review Count'], errors='coerce')
+            # Filter out NaN values and sort by Review Count descending
+            top_rated_df = df.dropna(subset=['Review Count']).sort_values('Review Count', ascending=False)
             top_rated_games = top_rated_df.head(5).to_dict('records')
         else:
             top_rated_games = []
@@ -83,15 +84,15 @@ def games(page=1, sort_by='recent'):
         # This ensures newly processed games appear immediately
         df = pd.read_excel(config.EXCEL_FILE_PATH, engine='openpyxl')
         
-        # Convert Metacritic to numeric for proper sorting
-        if 'Metacritic' in df.columns:
-            df['Metacritic'] = pd.to_numeric(df['Metacritic'], errors='coerce')
+        # Convert Review Count to numeric for proper sorting
+        if 'Review Count' in df.columns:
+            df['Review Count'] = pd.to_numeric(df['Review Count'], errors='coerce')
         
         # Sort based on sort_by parameter
-        if sort_by == 'metacritic':
-            # Sort by Metacritic score (highest first)
-            df = df.sort_values('Metacritic', ascending=False, na_position='last')
-            logger.info("Sorting games by Metacritic score")
+        if sort_by == 'ratings':
+            # Sort by Review Count (highest first)
+            df = df.sort_values('Review Count', ascending=False, na_position='last')
+            logger.info("Sorting games by Review Count")
         else:
             # Default sort by most recently added (assuming the file is in chronological order)
             df = df.sort_index(ascending=False)
@@ -210,7 +211,7 @@ def search():
                 processed_ids = []
             
             # Search for games
-            search_results = rawg_api.search_games(query)
+            search_results = rawg_api.search_games(query, min_reviews=1)
             
             # Filter out already processed games
             filtered_results = [game for game in search_results if game['id'] not in processed_ids]
@@ -339,27 +340,23 @@ def run_job():
         flash("Error starting job", "error")
         return redirect(url_for('index'))
 
-@app.template_filter('truncate_html')
-def truncate_html(text, length=200):
-    """Truncate text to a maximum length, preserving complete words"""
+@app.template_filter('regex_search')
+def regex_search(text, pattern):
+    """Search for regex pattern in text and return all matches"""
     if not text:
+        return []
+    return re.findall(pattern, text)
+
+@app.template_filter('truncate_html')
+def truncate_html(html, length=200):
+    """Truncate HTML text to specified length without breaking tags"""
+    if not html:
         return ""
-        
-    # Strip HTML tags
-    import re
-    text = re.sub(r'<.*?>', '', text)
-    
+    # Simple tag stripping for truncation
+    text = re.sub('<[^<]+?>', '', html)
     if len(text) <= length:
         return text
-        
-    # Find the last space before the length limit
-    truncated = text[:length]
-    last_space = truncated.rfind(' ')
-    
-    if last_space != -1:
-        truncated = truncated[:last_space]
-        
-    return truncated + "..."
+    return text[:length].rsplit(' ', 1)[0] + '...'
 
 @app.route('/sitemap.xml')
 def sitemap():
@@ -373,7 +370,10 @@ def sitemap():
         xml_content += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         
         # Add static pages
-        today = datetime.utcnow().strftime('%Y-%m-%d')
+        now = datetime.utcnow()
+        day = now.day
+        day_suffix = 'th' if 11 <= day <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(day % 10, 'th')
+        today = now.strftime(f'%B {day}{day_suffix}, %Y')
         
         # Home page
         xml_content += f'  <url>\n    <loc>{host_url}/</loc>\n    <lastmod>{today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n'

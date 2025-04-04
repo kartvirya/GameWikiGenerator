@@ -87,13 +87,14 @@ class RawgAPI:
             
         return {}
     
-    def get_indie_games(self, page: int = 1, page_size: int = 20, metacritic_min: Optional[int] = None) -> List[Dict[str, Any]]:
+    def get_indie_games(self, page: int = 1, page_size: int = 20, metacritic_min: Optional[int] = None, min_reviews: Optional[int] = 1) -> List[Dict[str, Any]]:
         """Get a list of indie games.
         
         Args:
             page: The page number to request
             page_size: The number of results per page
             metacritic_min: Optional minimum metacritic score for filtering
+            min_reviews: Optional minimum number of ratings/reviews
             
         Returns:
             A list of games or an empty list if there was an error
@@ -108,6 +109,10 @@ class RawgAPI:
         # Add metacritic filter if specified
         if metacritic_min:
             params['metacritic'] = f"{metacritic_min},100"  # Range from min to 100
+            
+        # Add ratings count filter to get games with at least some reviews
+        if min_reviews:
+            params['ratings_count'] = f"{min_reviews},1000000"
         
         response = self._make_request('games', params)
         
@@ -182,13 +187,14 @@ class RawgAPI:
             
         return game_data
     
-    def search_games(self, query: str, page: int = 1, page_size: int = 20) -> List[Dict[str, Any]]:
+    def search_games(self, query: str, page: int = 1, page_size: int = 20, min_reviews: Optional[int] = 1) -> List[Dict[str, Any]]:
         """Search for games by name.
         
         Args:
             query: The search query
             page: The page number to request
             page_size: The number of results per page
+            min_reviews: Optional minimum number of ratings/reviews
             
         Returns:
             A list of games matching the search query
@@ -198,6 +204,10 @@ class RawgAPI:
             'page': page,
             'page_size': page_size
         }
+        
+        # Add ratings count filter to get games with at least some reviews
+        if min_reviews:
+            params['ratings_count'] = f"{min_reviews},1000000"
         
         response = self._make_request('games', params)
         

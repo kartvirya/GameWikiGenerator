@@ -64,11 +64,11 @@
                     <div class="d-flex align-items-center">
                         <div class="dropdown me-3">
                             <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                Sort: {{ 'Metacritic Score' if sort_by == 'metacritic' else 'Most Recent' }}
+                                Sort: {{ 'Reviews Count' if sort_by == 'ratings' else 'Most Recent' }}
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="sortDropdown">
                                 <li><a class="dropdown-item {% if sort_by == 'recent' %}active{% endif %}" href="{{ url_for('games', page=1) }}">Most Recent</a></li>
-                                <li><a class="dropdown-item {% if sort_by == 'metacritic' %}active{% endif %}" href="{{ url_for('games', sort_by='metacritic', page=1) }}">Metacritic Score</a></li>
+                                <li><a class="dropdown-item {% if sort_by == 'ratings' %}active{% endif %}" href="{{ url_for('games', sort_by='ratings', page=1) }}">Reviews Count</a></li>
                             </ul>
                         </div>
                         <form class="d-flex">
@@ -88,7 +88,7 @@
                                     <th>Name</th>
                                     <th>Studio</th>
                                     <th>Release Date</th>
-                                    <th>Metacritic</th>
+                                    <th>Reviews</th>
                                     <th>Game ID</th>
                                     <th>Action</th>
                                 </tr>
@@ -109,12 +109,10 @@
                                     <td>{{ game.Studio }}</td>
                                     <td>{{ game['Release Date'] }}</td>
                                     <td>
-                                        {% if game['Metacritic'] %}
-                                            <span class="badge bg-{{ 'success' if game['Metacritic'] >= 75 else 'warning' if game['Metacritic'] >= 60 else 'danger' }}">
-                                                {{ game['Metacritic'] }}
-                                            </span>
+                                        {% if game['Review Count'] %}
+                                            {{ game['Review Count'] }}
                                         {% else %}
-                                            <span class="text-muted">N/A</span>
+                                            <span class="text-muted">0</span>
                                         {% endif %}
                                     </td>
                                     <td>{{ game['Game ID'] }}</td>

@@ -114,7 +114,17 @@ Also include a list of references that would be appropriate for this wiki entry.
 
 Format your response as a JSON object with two fields:
 1. "wiki_entry": The full 3-5 paragraph wiki entry text with HTML formatting
-2. "references": A formatted list of references in APA style. Please separate each reference clearly - either with line breaks between them or as an array of strings, with each item being one complete reference.
+2. "references": A formatted HTML list of references. Each reference should be in an <ol> list with <li> items. If a reference has a URL, make it a clickable link using an <a> tag with target="_blank". Style the references with color: #9370DB and add margin-bottom: 0.5rem to each <li>.
+
+Example reference format:
+<ol class="ps-4">
+  <li class="mb-2">
+    <a href="https://example.com" target="_blank" style="color: #9370DB;">Author. (Year). Article Title.</a>
+  </li>
+  <li class="mb-2" style="color: #9370DB;">
+    Author. (Year). Book Title [No URL available].
+  </li>
+</ol>
 
 Note: If the description is in HTML format, please parse it and use the actual content rather than the HTML tags.
 The image URL will be displayed alongside your wiki entry, so you don't need to describe the image in detail. Focus on the game itself.

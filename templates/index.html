@@ -111,7 +111,7 @@
                             <tr>
                                 <th>Game</th>
                                 <th>Studio</th>
-                                <th>Metacritic</th>
+                                <th>Reviews</th>
                                 <th>Release Date</th>
                                 <th>Actions</th>
                             </tr>
@@ -127,9 +127,11 @@
                                 </td>
                                 <td>{{ game['Studio'] }}</td>
                                 <td>
-                                    <span class="badge bg-{{ 'success' if game['Metacritic'] >= 75 else 'warning' if game['Metacritic'] >= 60 else 'danger' }}">
-                                        {{ game['Metacritic'] }}
-                                    </span>
+                                    {% if game['Review Count'] %}
+                                    {{ game['Review Count'] }}
+                                    {% else %}
+                                    <span class="text-muted">0</span>
+                                    {% endif %}
                                 </td>
                                 <td>{{ game['Release Date'] }}</td>
                                 <td>
@@ -166,7 +168,7 @@
                             <tr>
                                 <th>Game</th>
                                 <th>Studio</th>
-                                <th>Metacritic</th>
+                                <th>Reviews</th>
                                 <th>Release Date</th>
                                 <th>Actions</th>
                             </tr>
@@ -182,12 +184,10 @@
                                 </td>
                                 <td>{{ game['Studio'] }}</td>
                                 <td>
-                                    {% if game['Metacritic'] %}
-                                    <span class="badge bg-{{ 'success' if game['Metacritic'] >= 75 else 'warning' if game['Metacritic'] >= 60 else 'danger' }}">
-                                        {{ game['Metacritic'] }}
-                                    </span>
+                                    {% if game['Review Count'] %}
+                                    {{ game['Review Count'] }}
                                     {% else %}
-                                    <span class="text-muted">N/A</span>
+                                    <span class="text-muted">0</span>
                                     {% endif %}
                                 </td>
                                 <td>{{ game['Release Date'] }}</td>

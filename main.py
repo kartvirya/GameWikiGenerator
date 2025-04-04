@@ -98,6 +98,9 @@ class GameWikiGenerator:
             metacritic_score = game_details.get('metacritic', 0)
             ratings_count = game_details.get('ratings_count', 0)
             
+            # Log the retrieved data for debugging
+            logger.info(f"Game {game['name']} has ratings_count: {ratings_count}")
+            
             # Prepare data for Excel
             excel_data = {
                 'Game ID': game_id,
@@ -105,7 +108,7 @@ class GameWikiGenerator:
                 'Studio': ', '.join(dev_names),
                 'Release Date': game_details.get('released', ''),
                 'Metacritic': metacritic_score,  # Store as Metacritic rather than Review Count
-                'Ratings Count': ratings_count,  # Also store ratings count separately 
+                'Review Count': ratings_count,  # Store ratings count as Review Count to match existing data
                 'Image URL': game_details.get('background_image', ''),
                 'Wiki Entry': wiki_entry,
                 'References': references,
@@ -165,8 +168,8 @@ class GameWikiGenerator:
         if game_details.get('esrb_rating', {}).get('name'):
             additional_info.append(f"ESRB Rating: {game_details['esrb_rating']['name']}")
             
-        if game_details.get('metacritic'):
-            additional_info.append(f"Metacritic Score: {game_details['metacritic']}")
+        if game_details.get('ratings_count'):
+            additional_info.append(f"Reviews Count: {game_details['ratings_count']}")
             
         platforms = [p.get('platform', {}).get('name', '') for p in game_details.get('platforms', [])]
         if platforms:
@@ -218,9 +221,9 @@ class GameWikiGenerator:
         processed_count = 0
         while self.daily_request_count < self.request_limit and processed_count < effective_limit:
             try:
-                # Get indie games with a minimum Metacritic score of 60
-                # This helps ensure we're processing higher quality games first
-                games = self.rawg_api.get_indie_games(page, metacritic_min=60)
+                # Get indie games with a minimum ratings count of 1 and metacritic score of 60
+                # This helps ensure we're processing games with reviews
+                games = self.rawg_api.get_indie_games(page, metacritic_min=60, min_reviews=1)
                 
                 if not games:
                     logger.info("No more games to process or API limit reached")

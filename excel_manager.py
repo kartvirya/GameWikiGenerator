@@ -64,7 +64,10 @@ class ExcelManager:
                 return False
                 
             # Add the current date
-            game_data['Date Added'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            now = datetime.now()
+            day = now.day
+            day_suffix = 'th' if 11 <= day <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(day % 10, 'th')
+            game_data['Date Added'] = now.strftime(f'%B {day}{day_suffix}, %Y')
             
             # Append the new data
             new_row = pd.DataFrame([game_data])
