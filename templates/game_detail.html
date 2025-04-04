@@ -76,16 +76,37 @@
                 <div class="references-container">
                     {% if game.References %}
                         <ol class="ps-4">
+                            {% set refs = [] %}
+                            {% set current_ref = [] %}
                             {% for ref in game.References.strip('[]').split(',') %}
                                 {% set ref_clean = ref.strip().strip("'") %}
+                                {% if ref_clean.startswith('http') or ref_clean.endswith('.html') or ref_clean.endswith('.com') or ref_clean.endswith('.net') %}
+                                    {% if current_ref %}
+                                        {% set _ = current_ref.append(ref_clean) %}
+                                        {% set _ = refs.append(current_ref|join(' ')) %}
+                                        {% set current_ref = [] %}
+                                    {% endif %}
+                                {% elif ref_clean.startswith('"') and not ref_clean.endswith('"') %}
+                                    {% set _ = current_ref.append(ref_clean) %}
+                                {% elif current_ref %}
+                                    {% set _ = current_ref.append(ref_clean) %}
+                                {% else %}
+                                    {% set _ = refs.append(ref_clean) %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if current_ref %}
+                                {% set _ = refs.append(current_ref|join(' ')) %}
+                            {% endif %}
+                            
+                            {% for ref in refs %}
                                 <li class="mb-2">
-                                    {% if 'Retrieved from' in ref_clean %}
-                                        {% set parts = ref_clean.split('Retrieved from') %}
-                                        {% set title = parts[0].strip() %}
-                                        {% set url = parts[1].strip().strip("'") %}
+                                    {% if 'http' in ref %}
+                                        {% set url = ref.split('http')[1].strip() %}
+                                        {% set url = 'http' + url %}
+                                        {% set title = ref.split(url)[0].strip() %}
                                         <a href="{{ url }}" target="_blank" style="color: #9370DB;">{{ title }}</a>
                                     {% else %}
-                                        <a href="#" style="color: #9370DB; text-decoration: none; cursor: default;">{{ ref_clean }}</a>
+                                        <a href="#" style="color: #9370DB; text-decoration: none; cursor: default;">{{ ref }}</a>
                                     {% endif %}
                                 </li>
                             {% endfor %}
