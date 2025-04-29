@@ -1,5 +1,10 @@
 import os
 from pathlib import Path
+try:
+    from dotenv import load_dotenv
+    load_dotenv()  # Load environment variables from .env file
+except ImportError:
+    print("dotenv package not found. Environment variables must be set manually.")
 
 class Config:
     """Configuration settings for the Game Wiki Generator."""
