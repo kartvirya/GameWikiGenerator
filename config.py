@@ -31,11 +31,18 @@ class Config:
         
         # API configuration
         self.RAWG_BASE_URL = "https://api.rawg.io/api"
-        self.OPENAI_MODEL = "gpt-4o"  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
+        self.OPENAI_MODEL = "gpt-3.5-turbo-instruct"  # Using the fastest model for maximum speed
         
         # Request limits
-        self.DAILY_REQUEST_LIMIT = 800  # Maximum requests per day
+        self.DAILY_REQUEST_LIMIT = 10000  # Increased for rapid processing
         
         # Wiki generation settings
-        self.MIN_PARAGRAPHS = 3
-        self.MAX_PARAGRAPHS = 5
+        self.MIN_PARAGRAPHS = 1  # Minimum for faster generation
+        self.MAX_PARAGRAPHS = 2  # Minimum for faster generation
+        
+        # Rapid processing settings
+        self.RAPID_MODE = os.getenv("RAPID_MODE", "False").lower() == "true"
+        self.PARALLEL_REQUESTS = 25  # Increased parallel requests
+        self.REQUEST_DELAY = 0.05  # Minimal delay
+        self.PAGE_SIZE = 50  # Larger page size for fetching games
+        self.BATCH_SIZE = 200  # Larger batch size

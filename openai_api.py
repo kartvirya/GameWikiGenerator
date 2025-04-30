@@ -8,16 +8,26 @@ logger = logging.getLogger(__name__)
 class OpenAIAPI:
     """API client for OpenAI to generate wiki entries."""
     
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, model="gpt-3.5-turbo"):
         """Initialize the OpenAI API client.
         
         Args:
             api_key: The API key for OpenAI
+            model: The model to use (default: gpt-3.5-turbo)
         """
         self.api_key = api_key
         self.client = OpenAI(api_key=api_key)
-        # Using gpt-3.5-turbo model as requested by the user
-        self.model = "gpt-3.5-turbo"
+        self.model = model
+        self.rapid_mode = False
+        
+    def set_rapid_mode(self, enabled=True):
+        """Enable or disable rapid processing mode.
+        
+        Args:
+            enabled: Whether to enable rapid mode
+        """
+        self.rapid_mode = enabled
+        logger.info(f"Rapid processing mode {'enabled' if enabled else 'disabled'}")
         
     def generate_wiki_entry(self, game_data: Dict[str, Any]) -> Tuple[str, str]:
         """Generate a wiki entry for a game.
@@ -29,10 +39,40 @@ class OpenAIAPI:
             A tuple containing (wiki_entry, references)
         """
         try:
+            # In ultra-rapid mode, generate minimal content
+            if self.rapid_mode and self.model == "gpt-3.5-turbo-instruct":
+                # Prepare minimalist prompt
+                game_name = game_data.get('name', 'Unknown Game')
+                description = game_data.get('description', '')[:300]  # Truncate for faster processing
+                release_date = game_data.get('released', '')
+                developers = ', '.join(game_data.get('developers', []))[:100]
+                
+                # Use the completion API for fastest possible response
+                completion = self.client.completions.create(
+                    model="gpt-3.5-turbo-instruct",
+                    prompt=f"Write a 2-paragraph wiki entry for the game '{game_name}' (released {release_date} by {developers}). Include 3 references.",
+                    max_tokens=500,
+                    temperature=0.3,
+                )
+                
+                text = completion.choices[0].text
+                
+                # Very basic split between wiki entry and references
+                parts = text.split("References:")
+                wiki_entry = parts[0].strip()
+                references = f"<ol><li>{'</li><li>'.join(parts[1].strip().split('\\n')[:3] if len(parts) > 1 else ['Reference 1', 'Reference 2', 'Reference 3'])}</li></ol>"
+                
+                return wiki_entry, references
+            
+            # Regular processing for other models or when not in rapid mode
             # Prepare a detailed prompt with all available game information
             prompt = self._prepare_wiki_prompt(game_data)
             
             logger.info(f"Generating wiki entry for {game_data.get('name', 'unknown game')}")
+            
+            # Adjust parameters based on mode
+            temperature = 0.5 if self.rapid_mode else 0.7
+            max_tokens = 1000 if self.rapid_mode else 2000
             
             # Make the request to OpenAI
             response = self.client.chat.completions.create(
@@ -43,9 +83,7 @@ class OpenAIAPI:
                         "content": "You are a video game historian and journalist who writes professional wiki "
                                   "entries about video games. Your entries are well-structured, factual, "
                                   "comprehensive and engaging for readers. Focus on the game's development, "
-                                  "gameplay, reception, and cultural impact. Use a neutral, encyclopedic tone. "
-                                  "Feel free to integrate relevant visual elements such as 'As shown in the game's artwork, ...' "
-                                  "or 'The visual style of the game depicts...' when the game has images available."
+                                  "gameplay, reception, and cultural impact. Use a neutral, encyclopedic tone."
                     },
                     {
                         "role": "user",
@@ -53,8 +91,8 @@ class OpenAIAPI:
                     }
                 ],
                 response_format={"type": "json_object"},
-                temperature=0.7,
-                max_tokens=2000
+                temperature=temperature,
+                max_tokens=max_tokens
             )
             
             # Extract the response
@@ -90,10 +128,32 @@ class OpenAIAPI:
         platforms = ', '.join(game_data.get('platforms', ['Unknown platform']))
         tags = ', '.join(game_data.get('tags', []))
         rating = game_data.get('rating', 'No rating available')
-        website = game_data.get('website', 'No official website available')
-        image_url = game_data.get('image_url', 'No image available')
         
-        prompt = f"""
+        # Use a more concise prompt in rapid mode
+        if self.rapid_mode:
+            prompt = f"""
+Create a brief wiki entry for the game "{game_name}".
+
+Game info:
+- Description: {description}
+- Release: {release_date}
+- Dev: {developers}
+- Publisher: {publishers}
+- Genres: {genres}
+- Platforms: {platforms}
+
+Write 2-3 paragraphs covering gameplay, development, and reception.
+Include 3 references in HTML format.
+
+Format as JSON with:
+1. "wiki_entry": HTML-formatted wiki entry
+2. "references": HTML-formatted references list with <ol> and <li> tags
+"""
+        else:
+            website = game_data.get('website', 'No official website available')
+            image_url = game_data.get('image_url', 'No image available')
+            
+            prompt = f"""
 Please create a professional wiki entry for the video game "{game_name}".
 
 Here is the information available about the game:
